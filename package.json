@@ -1,0 +1,15 @@
+{
+  "name": "kyspec",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A spec-driven method for AI coding agents: specs with the code, changes deleted when done, git for the history, no CLI.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test check-layout.test.mjs",
+    "check": "node check-layout.mjs examples/lantern"
+  }
+}
