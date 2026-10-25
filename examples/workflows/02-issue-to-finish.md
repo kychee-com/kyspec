@@ -29,7 +29,8 @@ Tests first, because `AGENTS.md` asks for it: four tests for archive, idempotenc
 list, and unarchive. Then the routes. In the same commit it edits `specs/reading-list.md`: the
 requirement "An archived book leaves the list and keeps its notes" with three scenarios, present
 tense, and replaces the text under the change's `## Specs` with `→ in specs/reading-list.md`.
-That commit is `9f3c2a1`. The page and `openapi.json` follow in `2b7e4d0`.
+That commit is `9f3c2a1`, and `openapi.json` moves in it too, because Lantern's `AGENTS.md`
+puts a route and its documentation in one commit (method #10). The page follows in `2b7e4d0`.
 
 The diff touches `src/api/books.js`, so it runs `/lantern-api-review 4c1d9e2..2b7e4d0`. The
 review reads the diff and the style doc, writes three rule lines and `Verdict: pass` into

@@ -6,8 +6,8 @@ in its working state rather than a finished, tidy one.
 
 Where it stands: the change `archive-a-book` has shipped, verify cycle 1 has failed one
 scenario, and the fix is an open task. Its git history up to here, and on to the finish, is in
-the top-level [README](../../README.md) "A change's life"; the [workflows](../workflows) narrate
-the steps.
+[02. Issue to finish](../workflows/02-issue-to-finish.md); the other [workflows](../workflows)
+cover the situations around it.
 
 What is here:
 

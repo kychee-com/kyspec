@@ -30,9 +30,8 @@ status it had.
 ## Tasks
 
 - [x] Tests: archive removes from the list, keeps notes, is idempotent; unarchive restores the book — 4 tests, 9f3c2a1
-- [x] `POST /books/:id/archive`, `POST /books/:id/unarchive`, `GET /books?archived=true`; the requirement moved into `specs/reading-list.md` in the same commit — 9f3c2a1
+- [x] `POST /books/:id/archive`, `POST /books/:id/unarchive`, `GET /books?archived=true`, with `openapi.json` for both routes and the `archived` query; the requirement moved into `specs/reading-list.md` in the same commit — 9f3c2a1
 - [x] The page: archive on every book, an Archived view with unarchive — 2b7e4d0
-- [x] `openapi.json` for the two routes and the `archived` query — 2b7e4d0
 - [ ] Verify cycle 1: unarchive returned the book with status `to-read`; it was `reading` when archived (specs/reading-list.md "Unarchiving") — observed on https://lantern.example, 2026-10-20
 
 ## Surface review

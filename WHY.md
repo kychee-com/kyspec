@@ -1,70 +1,181 @@
 # Why Kyspec
 
-The argument behind the method, the lineage it comes from, and the objections we expect. [README.md](README.md) has the short form; [METHOD.md](METHOD.md) has the rules.
+**We wanted the next agent to find the current requirements, the decisions behind them, and evidence that the last change worked.**
+
+Kyspec is the [OpenSpec](https://github.com/Fission-AI/OpenSpec) spin-off we use at [Kychee](https://www.kychee.com/) to build [run402](https://run402.com/), our open-source backend for AI agents, and our other products. It captures the way we plan, implement, review, release, and finish work.
+
+If you already use OpenSpec, you already value specifications. The question is what happens as changes ship, decisions accumulate, and a new agent picks up the next task. Kyspec makes explicit choices about that handoff: update the spec with the code, keep the rationale in the spec, and require a fresh agent to check changed user-facing behavior before finishing.
+
+[README.md](README.md) has the quick start and migration guide. [METHOD.md](METHOD.md) defines the rules.
 
 ## The bet
 
-Every spec-driven framework for coding agents encodes a belief about the model it was written for. The frameworks of 2025 believed the model would wander, so they fenced it: a CLI to validate what it wrote, templates to fix the shape of what it wrote, an artifact graph to say what it may write next, delta files so it never touched the main spec directly, and an archive so nothing it produced was ever lost. For the models of 2025 that belief was right, and the fences bought real discipline.
+Every spec-driven framework encodes a belief about the model it was written for. The frameworks of 2025 believed the model would wander, so they fenced it: a CLI to validate what it wrote, templates to fix the shape of what it wrote, an artifact graph to say what it may write next, delta files so it never touched the main spec directly, and an archive so nothing it produced was lost. For the models of 2025 that belief was right, and the fences bought real discipline.
 
-Kyspec encodes a different belief: the model is now the most capable reader and writer in the repository, and the way to get its best work is to put nothing between it and the file. Give it the truth (the spec, present tense, beside the code), a small unit of work with a clear end, a reviewer that is not itself, and a handful of mechanical gates for the structure that must hold. Then trust it.
+Kyspec encodes a different belief: the model is now the most capable reader and writer in the repository, and the way to get its best work is to put nothing between it and the file. Give it the current spec beside the code, a small unit of work with a clear end, a reviewer that is not itself, and a few mechanical gates for the structure that must hold. Then trust it.
 
-The belief is testable. A method for a capable model should produce specs that stay true to the code, changes that finish, decisions that survive, and sessions that spend their context on the problem instead of the process. The sections below say how each departure from OpenSpec serves one of those.
+The rails that helped a weaker model now cost a stronger one in five places:
 
-## What OpenSpec got right
+1. **Expressibility.** A template gives every change the same four files, whether it renames a field or adds a subsystem. The model pads the small one and compresses the large one. In Kyspec a change is one file with seven sections, any of which may be one line, and a commit that touches no spec and carries no decision needs no file at all.
+2. **Throughput.** An artifact graph serializes thinking into proposal, then specs, then design, then tasks, each a round trip through a tool that prints the instructions for the next step. A model that can hold the whole change in one context is made to drip it out in four. In Kyspec each step is one page, and the model does the step.
+3. **Imagination.** Delta blocks make the model think in text diffs instead of system behavior, and a workflow that starts at "propose" skips the part where the idea is challenged. Kyspec starts with a brainstorm whose partner challenges rather than flatters and must end in an idea file with the alternatives and the pick, and the plan must search prior art and mark each hit keep or override.
+4. **Implementation quality.** A merge nobody reads lets the spec drift from the code within weeks. When the model edits the main spec in the commit that satisfies the requirement, the reviewer sees the contract and the implementation in one diff, and a fresh agent that never saw the diff then checks the released product the way a user would.
+5. **Context quality.** An archive of dated proposals is dead weight in every grep and every context window, and a model reads a stale plan as if it were live. Kyspec deletes the change once the spec has absorbed it and leaves the history to Git.
 
-Kyspec is a descendant, and it keeps what it inherited on purpose.
+Loosening the shackles is not lowering the bar. Kyspec trades validation for gates and narrative for evidence: a task line carries a SHA, a count or a dated live check, or it is open, and done means verified by someone who did not build it. The bar moves from the shape of the artifacts to the truth of the spec and the evidence of the release.
 
-- **Specs and changes are different things.** A spec says what the system does; a change says what is about to be different. Keeping them in separate trees is the single best idea in the family, and Kyspec keeps the two nouns, `specs/` and `changes/`.
-- **A requirement is a sentence with scenarios.** `### Requirement: <name>` with `SHALL`, then `#### Scenario:` blocks of `WHEN` and `THEN`. The form is readable by a person, checkable by a verifier, and stable enough for code to cite. Kyspec keeps it unchanged.
-- **A change is the unit of work.** Bounded, named after an outcome, with a task list. Kyspec keeps the unit and changes what happens at its end.
-- **The agent runs the workflow through slash commands.** The person says `/opsx:propose`; the model does the rest. Kyspec keeps the slash-command shape and removes the CLI underneath it.
+## What made us change
 
-## Each departure and its reason
+We used OpenSpec while building run402. It gave us a useful distinction between the system's current specification and the work intended to change it. We kept that distinction.
 
-**Delta spec files become same-commit edits of the main spec.** OpenSpec has the model write `## ADDED Requirements` and `## MODIFIED Requirements` blocks into a delta file inside the change, and merges them into the main spec at archive time. Kyspec has the model edit the main spec in the commit that makes the code satisfy the requirement, and the change's Specs section holds the intended text only until it moves, then a one-line pointer. The reason is method #1: a spec kept apart from its code goes append-only and drifts, because nobody edits it when the code moves. In Run402's OpenSpec period the deltas that had shipped were promoted by hand in a cleanup pass before the switch; the merge step that was supposed to do it had been skipped, because an archive is the last thing anyone does and the first thing anyone postpones.
+Over time, we found two problems in our own repository:
 
-**The archive becomes a delete.** OpenSpec moves a finished change to `changes/archive/<date>-<name>/` and never prunes. Kyspec `git rm`s the change in the same commit that settles its specs and folds its decisions. The reason is method #2 and #4: a spec describes the present, git is the history, and an artifact nobody will read again is not written. An archive is read by grep and by the model's context window, which cannot tell a proposal from 2026-06 that was superseded from a spec that is live. When Run402 deleted its archive, code comments all over the tree were found citing archived change paths, and every one had to be repointed to the spec that had absorbed it. Those citations had pointed, for months, at prose nobody maintained.
+- **Shipped behavior was still waiting to become the main specification.** We had implemented delta requirements that needed a separate cleanup pass to promote them into the live specs.
+- **Code cited decisions in archived change files.** Those plans retained historical reasoning, but their paths had become references from code to prose we no longer maintained.
 
-**Decisions move from `design.md` to numbered notes in the spec.** OpenSpec records technical decisions in the change's design file, which goes to the archive with it. Kyspec folds every decision that still governs the code into the owning spec's `## Design notes` as `D-<capability>-N`, with its rationale and the alternative it rejected, and code, tests and gates cite that id. The reason is method #3: a decision that lives only in a file with a lifecycle dies with that file. A decision cited from the place it governs is read every time the place is touched.
+We also wanted a clearer answer to "is this done?" Completing implementation tasks and collecting a green CI run were useful evidence. We wanted changed user-facing flows to be checked through the released product by a session that had not built them.
 
-**The CLI becomes nothing.** OpenSpec installs a CLI that scaffolds, validates, lists, shows and archives, and generates command files for thirty tools. Kyspec ships five prose pages and one CI check. The reason is method #9: nothing stands between the model and the file. A CLI validates structure, which the gate does in forty lines, and cannot validate truth, which only a reader can. A CLI also runs where it is installed, and an agent session in a cloud container, a CI runner, or a colleague's laptop should run the method unchanged.
+Those needs shaped Kyspec. We made the current spec part of the implementation commit, moved lasting decisions into that spec, and made fresh verification part of finishing user-facing work. Then we reduced the workflow to five short skills and one change file.
 
-**Templates become seven sections that scale.** OpenSpec scaffolds a change from templates and its schema says which artifacts a change has. Kyspec fixes the seven H2 headings of a change and nothing else: any section may be one line, and a commit that touches no spec and carries no decision needs no change at all. The reason is expressibility. A model made to fill a template writes to the template's size; a model given a section name and a reader writes to the problem's size.
+The result is our working method, with product-specific details expressed as declarations so another team can use it.
 
-**The artifact graph becomes one page per step.** OpenSpec's workflow is a dependency graph: design requires proposal, tasks require specs and design, and the agent fetches the instructions for its next step from the CLI. Kyspec's chain is five pages that each name the next one, and the whole chain runs in one thread from "implement owner/repo#N". The reason is throughput. A model that can hold a change entire should not be made to produce it in four round trips.
+## What you get by switching
 
-**Verification becomes a stranger's job.** OpenSpec's verify is an optional, advisory step run by the same agent. Kyspec's verify is required whenever a user-facing flow changed, and it runs in a fresh thread that reads only the change's Why and Specs, holds only what the product's user holds, uses the released thing, and never sees the diff. The reason is method #7: the builder reads the requirement through the code it wrote and cannot see what the code hides. A reader that never saw the code can only check what the spec says, which is the point.
+### 1. The requirement ships with the code
 
-**Evidence replaces narrative.** A Kyspec task line carries a commit SHA, a count, a dated live check, or a struck-through "not needed" naming the decision that killed it. No logs, no diaries. The reason is method #6: the reader wants to know whether it is done, not how the day went, and a SHA is shorter than a sentence and checkable.
+A Kyspec change carries the intended requirements in its Specs section. When a requirement is implemented, the main spec changes in the same commit as the code that satisfies it.
 
-**Ideas become a tier.** OpenSpec has nothing before "propose". Kyspec has `ideas/<name>.md` with a status line as its first line, a brainstorm skill whose partner challenges rather than flatters, and a rule that parked and rejected ideas keep their reason. The reason is imagination, and its cost: a session that cannot see what was already thought rediscovers it, and a session that starts at "propose" never asks whether the problem is real.
+That makes the contract reviewable alongside the implementation. A later session can start from the current spec without first finding a shipped delta that still needs promotion.
 
-**Prior art becomes mandatory.** Before a change's Decisions, its Prior art lists the principles it touches, the D-ids and requirements of nearby specs, and any idea on the topic, each marked keep or override in one line, and every override is restated as a decision. A decision that silently contradicts prior art is a defect. The reason is the same as for D-ids: a decision is only worth keeping if the next one has to answer to it.
+OpenSpec provides separate sync and archive operations for merging delta specs. Kyspec chooses a different rule: keeping the main spec current is part of implementing the change.
 
-**`config.yaml` becomes three lines in `AGENTS.md`.** Everything product-specific, the release skills, the coordination room, the surface review and its paths, the principle documents, is a declaration the skills read. An undeclared line means the step does not exist. The reason is that the five pages are the same for every product, so the method can be installed by copying them.
+The review now covers the requirement and implementation together, and the separate synchronization step we had been postponing is gone.
 
-**Validation becomes gates and labeled judgment.** One CI check refuses a change with the wrong sections, an archive directory, a date-prefixed change, a change directory without its file, and an idea without a status. Every other rule on the method page says which gate enforces it, or says "judgment" and names the review that applies it, or is deleted. The reason is method #8: a rule nobody enforces is a rule nobody has, and a document is the commentary on its gates.
+### 2. A fresh agent checks the released experience
 
-## Objections
+For every changed user-facing flow, Kyspec requires a verifier in a fresh thread that did not write the code.
 
-**Deleting the change loses information.** Everything worth keeping has a home before the delete: the requirements are in the spec, the decisions are D-ids in the spec's Design notes, the idea's residue is in the spec's Purpose, and the diff and the discussion are in git. What the archive kept beyond that was the narrative, and the narrative is what nobody read. The finish skill refuses to delete until each of those homes is filled; that is its first step.
+The verifier reads the change's Why and Specs, along with the specs they name. It uses what the user can use: the released app, or public documentation and published clients for a developer-facing product. It checks production or a deployed branch. It never reads the implementation diff.
 
-**A model editing the main spec will wreck it.** The edit rides in the same diff as the code, so the reviewer reads the contract and the implementation together; a wrong spec edit is as visible as a wrong line of code. A spec is also read by every later session that touches its capability, so a bad edit is found by the next one. A delta merged by a tool at archive time is read by nobody.
+For each requirement, it records what it observed and whether the result passed, failed, or was blocked. Failures become tasks for the builder. The builder fixes and releases; a new verification cycle checks the result.
 
-**Without a CLI, how do you know the structure holds?** The gate. It is one file, it runs in CI, and it refuses the handful of structural faults that matter. The CLI validated headings and scenario blocks too; it never validated whether the requirement was true or the decision was sound, and neither can any program. Kyspec spends its enforcement on the gate and names the rest judgment, out loud, section by section.
+This matters because a builder can carry the same mistaken interpretation into the implementation and its tests. A fresh thread starts from the requirement and has to demonstrate the behavior through the product.
 
-**Why must the verifier be a stranger?** Because the builder has already decided what the requirement means. The verify page gives the fresh thread the change's Why and Specs and nothing else, and tells it to list the scope one requirement per line before it touches the product, so it cannot drift onto the builder's reading. When the verifier fails a scenario, it adds a task and fixes nothing; the next release gets a new cycle from another fresh thread.
+OpenSpec also offers verification. Its documented verify workflow examines implementation against artifacts and produces an advisory report. Kyspec specifically requires this fresh-thread, user-perspective check for changed user-facing flows.
 
-**Isn't evidence on every task bureaucracy?** A SHA, a count, or a date and a URL is less text than the sentence it replaces, and unlike the sentence it can be checked. The rule is also what makes the finish step mechanical: every task is checked with evidence, or the change does not finish.
+That check takes another session and access to a released product. We consider the additional evidence worth the cost. Changes without a user-facing flow can skip it with a recorded reason; the method also defines how to handle scenarios the verifier cannot reach.
 
-**Does it work with pull requests?** Yes. The skills defer to the repository's `AGENTS.md` for where and how to push, the gate reads a diff between two trees, and a SHA is recorded once it is on the main branch, whether it got there by push or by merge. Run402 pushes to `main` from worktrees with no pull requests, but nothing in the method depends on that.
+### 3. Decisions survive where they are needed
 
-**What about people?** The method is for the work, not the worker. A person runs the same chain, writes the same change file and gets the same verify. The brainstorm page is written for a conversation; the person is the partner whose idea is being challenged, and the file at the end is theirs.
+A proposal has a short useful life. The decisions it contains may govern the system for years.
 
-**Why a coordination room?** Because several sessions work one repository at once, and a change file in git is only visible after a push. A declared room is where a session claims an area before it edits and announces when it is done; the plan and implement pages claim, the implement and finish pages announce, and only when the room is declared. Run402 uses its own rooms for this; any channel that can hold a claim and a message will do.
+Before a Kyspec change is deleted, every decision that still governs the code moves into the owning spec's Design notes. It receives a stable ID such as `D-auth-4` and keeps its rationale and rejected alternative. Code, tests, and documentation can cite that ID.
 
-**Why not Spec Kit, or Kiro, or BMAD?** They share OpenSpec's premise: structure the model's output and accumulate the artifacts. Spec Kit's constitution, specify, plan, tasks and implement sequence is an artifact graph with a different vocabulary, and its per-feature spec directories stay. Kyspec's premise is the opposite one, and the differences follow from it.
+The next plan must search the relevant principles, requirements, decision IDs, and ideas before making its own decisions. It marks relevant prior art `keep` or `override`, and explains each override.
 
-## Lineage
+This gives a later agent both the current rule and a reason to respect it. Changing direction remains possible; silently rediscovering or contradicting an existing decision becomes a reviewable defect.
 
-Run402 used OpenSpec for most of its life and owes it the shape of its specs. Three things pushed it to change: the archive grew faster than the specs and was cited from code; shipped deltas went unmerged because the merge was a separate, postponable step; and every session spent its first minutes learning the CLI's view of the world instead of the product's. The move took two days in October 2026: the method page was written, the five skills replaced the generated commands, the `openspec/` tree became `specs/`, `changes/` and `ideas/` at the repository root, the archive was deleted with its citations repointed, and a layout gate replaced the validator. Kyspec is that method with the product-specific lines turned into declarations.
+### 4. Completed plans leave the working tree
+
+Kyspec keeps current requirements and active work easy to find. A finished change is deleted after its lasting contents have been settled into the specs.
+
+That deletion has conditions. Tasks need evidence. Requirements must be implemented or explicitly removed from scope. Continuing decisions must be retained, and references must point to their new home. Verification must satisfy the method's completion rules.
+
+The change's previous versions remain in Git. Its ongoing requirements and rationale remain in the live spec. The working tree no longer needs a second collection of finished plans to represent that history.
+
+The next session gets a clearer starting point: current contracts and active work, with historical planning available through Git when it needs it.
+
+### 5. The process fits inside the repository
+
+Kyspec uses one change file with seven sections: Why, Specs, Prior art, Decisions, Tasks, Surface review, and Verification. Each section can be one line. Work that touches no spec and carries no decision, such as a typo fix, needs no change file.
+
+Five skills guide the work. The model reads their instructions and edits the files directly. There is no Kyspec workflow CLI, runtime template lookup, or artifact dependency graph to operate.
+
+The structure is still explicit. The change has required headings. The layout check validates the rules it can check mechanically. Reviewers assess the reasoning and evidence, and the verifier exercises the released behavior.
+
+For us, this is a useful division of responsibility: a compact written method, small structural checks, and direct scrutiny of the product.
+
+## What we keep from OpenSpec
+
+OpenSpec supplied foundations we still use:
+
+- **Current specs and planned changes have different jobs.** The spec describes the system; the change describes work in progress.
+- **Requirements have scenarios.** Stable `### Requirement: <name>` headings, `SHALL` statements, and `#### Scenario:` blocks with `WHEN` and `THEN` make the intended behavior concrete.
+- **A change is a bounded unit of work.** It has an outcome and a task list, so it can reach an end.
+- **The agent follows a reusable workflow.** People can invoke a skill and let the agent carry out the method.
+
+The familiar requirement format is why existing OpenSpec work can be reused. The migration changes the layout and lifecycle around that work.
+
+## How the choices differ
+
+OpenSpec is configurable. Kyspec packages a particular way of working, so a team can adopt these conventions together.
+
+| Choice | OpenSpec's documented workflow | Kyspec's method |
+| --- | --- | --- |
+| Planning artifacts | A schema defines artifacts; the default includes proposal, specs, design, and tasks | One change file with seven fixed sections |
+| Spec updates | Delta requirements can be synchronized before or during archive | Implemented requirements enter the main spec with their code |
+| Verification | Optional workflow checking artifacts against implementation; report-only | Fresh thread checks released user-facing behavior; the finish workflow requires the result |
+| Lasting rationale | Technical decisions recorded in the change's design artifact | Continuing decisions folded into the live capability spec |
+| Exploration | Explore workflow investigates ideas before a proposal | Brainstorm leaves a persistent idea file unless explicitly told to drop it |
+| Completion history | Completed change folders move into an archive | Completed change files are removed after their lasting contents are retained |
+
+OpenSpec users can customize their process, and some may already follow similar disciplines. Kyspec's value is making these choices the standard method you install and use.
+
+This comparison follows OpenSpec's [command reference](https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md), [profiles](https://openspec.dev/docs/profiles), [skill contracts](https://openspec.dev/docs/skills), and [schemas](https://openspec.dev/docs/schemas), checked October 2026.
+
+## Questions before switching
+
+### Can I keep my existing specs?
+
+Yes. Keep the requirement prose and WHEN/THEN scenarios, and review them against what the system currently does. Reconcile shipped deltas before moving to the Kyspec layout.
+
+Active changes need the seven-section format. Lasting decisions need a home in the current spec, and references to old change paths need updating. [Moving from OpenSpec](README.md#moving-from-openspec) gives the migration steps. This is a change of method and layout, with reusable source material.
+
+### Why not configure OpenSpec to work this way?
+
+Kyspec packages the complete method as five skill files: direct edits to the main spec, one temporary change file, lasting decision IDs, and fresh verification of user-facing releases.
+
+Many of these practices can also be added to OpenSpec. We wanted them together as the standard way of working, with the instructions available directly as skill files. Kyspec lets another team adopt that whole method.
+
+### Does deleting a change lose useful information?
+
+The finish checklist preserves the information that continues to matter before deleting the temporary change file.
+
+Requirements belong in the spec. Continuing decisions and their rationale belong in Design notes. Useful idea context moves into the spec's Purpose. References are updated before the change is deleted, and committed versions of the change remain in Git.
+
+The method depends on doing that transfer properly. The finish workflow and the reviewer check it.
+
+### Does CI enforce the entire method?
+
+The bundled `check-layout.mjs` enforces layout: the permitted change shape and sections, idea status lines, and the rules against archives and date-prefixed changes.
+
+The reviewer and the finish workflow judge whether requirements are implemented, evidence is adequate, and continuing decisions have been preserved. A layout check cannot by itself establish those facts.
+
+That boundary is explicit in [METHOD.md's Gates section](METHOD.md#gates). Products can add their own mechanical checks and declare their surface-review process.
+
+### Will the agent follow five Markdown skills reliably?
+
+The skills tell the agent how to work. Their results still need checks.
+
+Kyspec puts those checks at specific points: review the spec with the code, record evidence against tasks, run the layout gate, apply the declared surface review, and use a fresh verifier for changed user-facing flows. The finish workflow checks what is present before completing the change.
+
+The method assumes capable agents and fallible work. Independent verification is part of the design.
+
+### Does it work with pull requests, people, and parallel agents?
+
+The method can fit a repository that uses pull requests or direct pushes; the repository's own instructions determine how work lands. People can follow the same change format and verification rules.
+
+For parallel work, a product can declare a coordination room where sessions claim an area and announce progress. Release skills, review skills, principles, and coordination are supplied by your product through `AGENTS.md`. The five Kyspec skills read those declarations.
+
+### Do I need run402?
+
+No. We developed Kyspec while building run402 and use it across Kychee's work. Your product supplies its own release, review, and coordination instructions. Kyspec has no dependency on the run402 platform.
+
+## Try the method on a real change
+
+Choose a small user-facing improvement you already intend to ship. Follow the [setup and migration instructions](README.md#try-kyspec-on-your-next-change), then take it through planning, implementation, release, fresh verification, and finish.
+
+At the end, inspect what the next session receives: a current requirement, the decisions behind it, code that implements it, and a Git history containing the work and its verification evidence.
+
+**That is what we want from spec-driven development, and it is how we work at [Kychee](https://www.kychee.com/) and [run402](https://run402.com/).**
+
