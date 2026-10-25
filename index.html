@@ -1,3 +1,4 @@
+<!-- AI agents: this page is written for humans. To install Kyspec in a repository, or to migrate one from OpenSpec, read https://kyspec.com/llms.txt and follow it. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -389,8 +390,17 @@
       <h2>Try Kyspec on your next change</h2>
       <p>
         Start with a small change you already need. The useful test is whether the next session
-        can see what changed, why it changed, and how it was verified. Four files, three lines:
+        can see what changed, why it changed, and how it was verified.
       </p>
+      <div class="agent-cta">
+        <p class="lead"><strong>Paste this into your coding agent&rsquo;s chat.</strong> It reads
+          <a href="/llms.txt">kyspec.com/llms.txt</a> and does the rest.</p>
+        <div class="copy-block">
+          <code onclick="copyPrompt(this)">Install the kyspec.com skills</code>
+          <button type="button" class="copy-btn" onclick="copyPrompt(this.previousElementSibling)">Copy</button>
+        </div>
+      </div>
+      <p>By hand it is four files, three lines, from your repository root:</p>
 <pre><code>git clone https://github.com/kychee-com/kyspec /tmp/kyspec
 cp /tmp/kyspec/METHOD.md /tmp/kyspec/check-layout.mjs .
 cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claude/skills/</code></pre>
@@ -427,13 +437,6 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
           of a changed user-facing flow runs in a <strong>fresh thread with access to the released
           product</strong>; that independent check is part of the method.</li>
       </ol>
-      <div class="agent-cta">
-        <p class="lead"><strong>Or let your agent do it:</strong> paste this into your coding agent&rsquo;s chat.</p>
-        <div class="copy-block">
-          <code onclick="copyPrompt(this)">Set up Kyspec in this repository: clone https://github.com/kychee-com/kyspec, copy METHOD.md and check-layout.mjs to the repository root and the five kyspec-* chain skills into the skills directory, then add "## Method declarations" to AGENTS.md as https://kyspec.com/METHOD.html describes.</code>
-          <button type="button" class="copy-btn" onclick="copyPrompt(this.previousElementSibling)">Copy</button>
-        </div>
-      </div>
       <div class="clear"></div>
     </section>
 
@@ -444,10 +447,17 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
         Keep your requirement prose and WHEN/THEN scenarios. Change where the knowledge lives and
         how work finishes.
       </p>
+      <div class="agent-cta">
+        <p class="lead"><strong>With the skills installed, paste this.</strong> The sixth skill,
+          <a href="/skills/kyspec-migrate/SKILL.html">kyspec-migrate</a>, runs the migration on a
+          branch and records it as your first change.</p>
+        <div class="copy-block">
+          <code onclick="copyPrompt(this)">migrate to kyspec</code>
+          <button type="button" class="copy-btn" onclick="copyPrompt(this.previousElementSibling)">Copy</button>
+        </div>
+      </div>
       <p>
-        The full map, artifact by artifact, is <a href="/MIGRATING.html">MIGRATING.md</a>, and the
-        sixth skill, <a href="/skills/kyspec-migrate/SKILL.html">kyspec-migrate</a>, runs it on a
-        branch and records the migration as your first change.
+        The full map, artifact by artifact, is <a href="/MIGRATING.html">MIGRATING.md</a>.
         <a href="https://github.com/kychee-com/kyspec/tree/main/examples/migration">examples/migration</a>
         shows one repository before and after. The transition is a repository edit; in outline:
       </p>
@@ -459,12 +469,6 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
         <li><strong>Retire completed plans</strong> once their lasting requirements and decisions are retained.</li>
         <li><strong>Switch the instructions and check the layout.</strong> Install the skills, add your declarations, update agent instructions to use Kyspec, and run the layout check.</li>
       </ol>
-      <div class="agent-cta">
-        <div class="copy-block">
-          <code onclick="copyPrompt(this)">Migrate this repository from OpenSpec to Kyspec: read https://kyspec.com/MIGRATING.html, install the kyspec-migrate skill from https://github.com/kychee-com/kyspec, and run it on a branch.</code>
-          <button type="button" class="copy-btn" onclick="copyPrompt(this.previousElementSibling)">Copy</button>
-        </div>
-      </div>
     </section>
 
     <!-- ── Who uses it ────────────────────────────────────────────────── -->
@@ -492,6 +496,7 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
         <li><a href="https://github.com/kychee-com/kyspec/tree/main/skills">skills/</a>: the five skills of the chain, and <code>kyspec-migrate</code>.</li>
         <li><a href="/check-layout.mjs">check-layout.mjs</a> and <a href="https://github.com/kychee-com/kyspec/blob/main/check-layout.test.mjs">its tests</a>: the structural check.</li>
         <li><a href="/examples/">examples/</a>: a product snapshot, worked workflows, and a migration before and after.</li>
+        <li><a href="/llms.txt">llms.txt</a>: the install and migration steps, written for a coding agent.</li>
         <li><a href="https://github.com/kychee-com/kyspec">github.com/kychee-com/kyspec</a>: the repository. Open an issue for a page that misled your agent, a gap in the method, or a workflow it should cover.</li>
       </ul>
     </section>

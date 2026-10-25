@@ -101,12 +101,28 @@ td:last-child, th:last-child { padding-right: 0; }
 .prose h2 { margin-top: 44px; }
 .prose h3 { font-size: 17px; }
 .prose h4 { color: var(--fg); font-size: 15px; margin: 20px 0 6px; }
-.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; }
+.prose table { display: block; width: max-content; max-width: min(calc(100% + 100px), calc(100vw - 40px)); overflow-x: auto; }
+/* a floor under every column after the first, so a squeezed table scrolls
+   sideways instead of wrapping its prose one word per line (Chrome ignores
+   min-width on a table cell; a zero-height block inside the cell does not) */
+.prose th:not(:first-child)::before, .prose td:not(:first-child)::before { content: ""; display: block; width: 14em; height: 0; }
 .prose th, .prose td { padding-right: 16px; }
 .prose img { max-width: 100%; height: auto; }
 .prose pre { max-width: 100%; }
 .prose del { color: var(--muted); }
 
+@media (max-width: 720px) {
+  /* on a phone a Markdown table stacks: one block per row, each cell under
+     its column's name (the layout's small script copies the names into
+     data-th; without it the labels are simply empty) */
+  .prose table, .prose tbody, .prose tr, .prose th, .prose td { display: block; width: auto; max-width: none; overflow: visible; }
+  .prose thead { display: none; }
+  .prose tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+  .prose tr:first-child { border-top: 1px solid var(--pencil); }
+  .prose td { padding: 4px 0 8px; border: 0; overflow-wrap: anywhere; }
+  .prose td::before, .prose td:not(:first-child)::before { content: attr(data-th); display: block; width: auto; height: auto; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 2px; }
+  .prose td:empty { display: none; }
+}
 @media (max-width: 560px) {
   body { font-size: 15.5px; }
   .brand-say { display: none; }

@@ -43,5 +43,14 @@
       </nav>
     </footer>
   </div>
+  <script>
+    // On a phone a table stacks (assets/site.css): each cell shows its column's name.
+    document.querySelectorAll(".prose table").forEach(function (t) {
+      var names = Array.prototype.map.call(t.querySelectorAll("thead th"), function (th) { return th.textContent.trim(); });
+      t.querySelectorAll("tbody tr").forEach(function (tr) {
+        Array.prototype.forEach.call(tr.children, function (td, i) { if (names[i]) td.setAttribute("data-th", names[i]); });
+      });
+    });
+  </script>
 </body>
 </html>

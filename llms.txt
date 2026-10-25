@@ -1,0 +1,62 @@
+# Kyspec
+
+Kyspec is a spec-driven method for AI coding agents: specs with the code,
+changes deleted when done, git for the history, no CLI. It is the OpenSpec
+spin-off we use at Kychee to build run402, our open-source backend for AI
+agents, and our other products. Home: https://kyspec.com. Source:
+https://github.com/kychee-com/kyspec (MIT). Five short skills, one method
+(METHOD.md), one layout check (check-layout.mjs), no Kyspec workflow CLI.
+
+## Install the kyspec.com skills
+
+Four files, three lines, run from the repository root:
+
+    git clone https://github.com/kychee-com/kyspec /tmp/kyspec
+    cp /tmp/kyspec/METHOD.md /tmp/kyspec/check-layout.mjs .
+    cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claude/skills/
+
+1. METHOD.md goes to the repository root. It is the method the skills cite.
+2. The five chain skills (kyspec-brainstorm, kyspec-plan, kyspec-implement,
+   kyspec-verify, kyspec-finish) go into the coding agent's skills directory,
+   each keeping its SKILL.md: .claude/skills/ for Claude Code,
+   .agents/skills/ for Codex; another host uses its own skill location.
+   A repository arriving from OpenSpec (it has an openspec/ directory) also
+   takes skills/kyspec-migrate, for one run.
+3. check-layout.mjs is the layout gate (dependency-free Node.js). Run
+   `node check-layout.mjs` in CI; it checks the structure of changes and
+   ideas, including the rule against archived or date-prefixed changes.
+4. Add a `## Method declarations` section to AGENTS.md naming what the
+   skills cannot know: the principles document, the release skills, the
+   surface review, the coordination room. Omit a line that does not apply;
+   METHOD.md "Method declarations" defines each. Example:
+
+    ## Method declarations
+
+    - **Principles:** docs/principles.md, numbered; specs cite principles #N.
+    - **Release:** /deploy for the API and site; /publish for the npm package.
+    - **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
+    - **Coordination room:** the channel and procedure for claiming an area and announcing completion.
+
+Then start the work: invoke kyspec-brainstorm for an idea, or implement a
+named issue with Kyspec. Verification of a changed user-facing flow runs in
+a fresh thread with access to the released product.
+
+## Migrate to Kyspec (from OpenSpec)
+
+With the skills installed, including kyspec-migrate, run the kyspec-migrate
+skill on a branch. It follows https://kyspec.com/MIGRATING.html (shipped
+deltas merged by OpenSpec first, specs moved, living decisions lifted from
+the archive as D-ids, active changes converted to the seven sections,
+openspec/ deleted, skills and declarations installed, the gate run) and ends
+by recording the migration as the repository's first change,
+changes/adopt-kyspec.md.
+
+## Read
+
+- The method: https://kyspec.com/METHOD.html
+- Why: https://kyspec.com/WHY.html
+- Moving from OpenSpec: https://kyspec.com/MIGRATING.html
+- The skills: https://github.com/kychee-com/kyspec/tree/main/skills
+- Examples (a product snapshot, worked workflows, a migration before and
+  after): https://kyspec.com/examples/
+- Raw files: https://raw.githubusercontent.com/kychee-com/kyspec/main/<path>
