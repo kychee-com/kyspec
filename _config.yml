@@ -1,4 +1,6 @@
-# GitHub Pages renders README.md as the home page of kyspec.com.
+# GitHub Pages serves index.html as the home page of kyspec.com; README.md is
+# the GitHub front page, and the other Markdown pages render through
+# _layouts/default.html with the landing page's header, colors and type.
 title: Kyspec
 description: A spec-driven method for AI coding agents. Specs with the code, changes deleted when done, git for the history, no CLI.
 theme: jekyll-theme-primer

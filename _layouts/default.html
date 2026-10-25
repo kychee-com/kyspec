@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% seo %}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#EFEEE6">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1113">
+  <meta property="og:image" content="https://kyspec.com/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://kyspec.com/og.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="container">
+    <header class="site-head">
+      <a class="brand" href="/"><img class="logo" src="/logo.svg" alt="" width="36" height="36"><span class="brand-name">Kyspec</span><span class="brand-say">“key-spec” — specs with the code</span></a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="/METHOD.html">Method</a>
+        <a href="/WHY.html">Why</a>
+        <a href="/MIGRATING.html">Migrating</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/kychee-com/kyspec">GitHub</a>
+      </nav>
+    </header>
+    <main id="main" class="prose">
+      {{ content }}
+    </main>
+    <footer class="site-foot">
+      <span>MIT. Made by <a href="https://www.kychee.com/">Kychee</a>, the team behind <a href="https://run402.com/">run402</a>. Evolved from <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a>.</span>
+      <nav aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/METHOD.html">Method</a>
+        <a href="/WHY.html">Why</a>
+        <a href="/MIGRATING.html">Migrating</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/kychee-com/kyspec">GitHub</a>
+      </nav>
+    </footer>
+  </div>
+</body>
+</html>

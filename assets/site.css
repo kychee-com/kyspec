@@ -1,0 +1,117 @@
+/* kyspec.com — the shared base for the landing page and the Markdown pages:
+   tokens, type, header, footer and prose. Hand-written; no build step.
+   Paper and ink: a cool drafting paper, fountain-pen blue-black for the links,
+   graphite for the pencil marks, the reviewer's red pencil for a strike. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #EFEEE6;
+  --surface: #F7F6F1;
+  --line: #D9D7CC;
+  --fg: #1B1F1E;
+  --text: #3E4442;
+  --muted: #6F7571;
+  --ink: #2B4C7E;
+  --ink-strong: #1F3A63;
+  --pencil: #7A7F79;
+  --red: #C2453A;
+  --green: #4E8A5E;
+  --code-bg: #E5E4DA;
+  --serif: "Lora", Georgia, "Times New Roman", serif;
+  --hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F1113;
+    --surface: #171A1E;
+    --line: #272C33;
+    --fg: #F2F1EC;
+    --text: #B4B8B4;
+    --muted: #9A9F9B;
+    --ink: #9DBDEC;
+    --ink-strong: #BFD5F5;
+    --pencil: #8A8F8B;
+    --red: #E5786B;
+    --green: #8FB893;
+    --code-bg: #1E2227;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--serif); font-size: 16px; line-height: 1.6; min-height: 100vh;
+}
+.container {
+  max-width: 860px; margin: 0 auto;
+  padding-block: 28px 56px;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+
+h1, h2, h3 { color: var(--fg); line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(32px, 5vw, 50px); font-weight: 700; letter-spacing: -0.4px; }
+h2 { font-size: 23px; font-weight: 600; margin-top: 56px; margin-bottom: 10px; }
+h3 { font-size: 16px; font-weight: 600; margin-top: 26px; margin-bottom: 6px; }
+p { margin: 0 0 14px; }
+ul, ol { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+li > p { margin-bottom: 6px; }
+strong { color: var(--fg); font-weight: 600; }
+em { font-style: italic; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+
+a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--ink) 35%, transparent); }
+a:hover { color: var(--ink-strong); text-decoration-color: currentColor; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--surface); color: var(--fg); padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; z-index: 20; }
+.skip:focus { left: 12px; }
+
+code, kbd, pre { font-variant-ligatures: none; }
+code, kbd { font-family: var(--mono); font-size: 0.86em; background: var(--code-bg); color: var(--fg); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 16px; }
+pre code { background: none; padding: 0; font-size: 13px; line-height: 1.55; color: var(--fg); }
+blockquote { margin: 0 0 14px; padding: 2px 0 2px 16px; border-left: 3px solid var(--line); color: var(--muted); }
+
+table { border-collapse: collapse; font-size: 15px; line-height: 1.45; margin: 0 0 16px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); }
+th { color: var(--fg); font-weight: 600; font-size: 13.5px; letter-spacing: 0.01em; border-bottom-color: var(--pencil); }
+td:last-child, th:last-child { padding-right: 0; }
+
+/* header and footer, shared by every page */
+.site-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; margin-bottom: 28px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); }
+.brand .logo { width: 36px; height: 36px; flex: none; }
+.brand-name { font-size: 21px; font-weight: 700; letter-spacing: -0.2px; }
+.brand-say { font-family: var(--hand); font-size: 18px; color: var(--muted); margin-left: 4px; }
+.site-nav { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--mono); font-size: 13px; }
+.site-nav a { text-decoration: none; color: var(--muted); }
+.site-nav a:hover, .site-nav a[aria-current="page"] { color: var(--ink); }
+.site-foot { border-top: 1px solid var(--line); margin-top: 48px; padding-top: 24px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 24px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+.site-foot nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--mono); font-size: 13px; }
+.site-foot a { text-decoration: none; }
+.site-foot a:hover { text-decoration: underline; }
+
+/* the Markdown pages (METHOD.md, WHY.md, MIGRATING.md, the skills, the examples) */
+.prose { max-width: 760px; }
+.prose h1 { font-size: clamp(28px, 4.2vw, 40px); margin-bottom: 14px; }
+.prose h2 { margin-top: 44px; }
+.prose h3 { font-size: 17px; }
+.prose h4 { color: var(--fg); font-size: 15px; margin: 20px 0 6px; }
+.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; }
+.prose th, .prose td { padding-right: 16px; }
+.prose img { max-width: 100%; height: auto; }
+.prose pre { max-width: 100%; }
+.prose del { color: var(--muted); }
+
+@media (max-width: 560px) {
+  body { font-size: 15.5px; }
+  .brand-say { display: none; }
+  h2 { margin-top: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="kd kd-favicon" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect width="64" height="64" rx="12" fill="#0F1113"/>
+<style>.kd text{font-family:Caveat,'Segoe Print','Bradley Hand',cursive;fill:#E3DED2}.kd .ink{stroke:#E3DED2}.kd text.ink{fill:#E3DED2}.kd .pencil{stroke:#B9B4A8}.kd text.pencil{fill:#B9B4A8}.kd .red{stroke:#E5786B}.kd text.red{fill:#E5786B}.kd .blue{stroke:#9DBDEC}.kd text.blue{fill:#9DBDEC}.kd .green{stroke:#8FB893}.kd text.green{fill:#8FB893}@media (prefers-color-scheme:dark){.kd text{fill:#E3DED2}.kd .ink{stroke:#E3DED2}.kd text.ink{fill:#E3DED2}.kd .pencil{stroke:#B9B4A8}.kd text.pencil{fill:#B9B4A8}.kd .red{stroke:#E5786B}.kd text.red{fill:#E5786B}.kd .blue{stroke:#9DBDEC}.kd text.blue{fill:#9DBDEC}.kd .green{stroke:#8FB893}.kd text.green{fill:#8FB893}}</style>
+<path pathLength="1" style="--i:0" class="ink" d="M19,12.9 C20.5,12.9 25.1,13.3 28.1,13.3 C31.1,13.3 34.3,11.8 37.1,13.1 C39.9,14.4 43.5,18 44.8,21 C46.2,24 45.3,27.8 45.4,31.1 C45.5,34.5 45.6,37.8 45.5,41.1 C45.5,44.5 47.4,49.6 45.1,51.3 C42.8,52.9 36.2,51 31.8,50.9 C27.5,50.9 21,53.3 18.8,51.3 C16.6,49.2 18.6,42.7 18.6,38.4 C18.6,34.2 18.8,30 18.9,25.8 C18.9,21.5 18.9,15.1 19,13" stroke-width="3.6" opacity="0.9"/>
+<path pathLength="1" style="--i:1" class="pencil" d="M24.9,27.3 C27.3,27.2 37.1,26.8 39.5,26.6" stroke-width="2.4" opacity="0.9"/>
+<path pathLength="1" style="--i:2" class="pencil" d="M24.8,34.7 C26.8,34.8 34.8,35.1 36.8,35.2" stroke-width="2.4" opacity="0.9"/>
+<path pathLength="1" style="--i:3" class="pencil" d="M24.2,43.4 C25.8,43.3 31.9,42.9 33.4,42.8" stroke-width="2.4" opacity="0.9"/>
+<path pathLength="1" style="--i:4" class="red" d="M20.7,45.8 C22.6,45.3 28.4,43.5 32.2,42.5 C35.9,41.4 41.3,40 43.2,39.5" stroke-width="3" opacity="1"/>
+<path pathLength="1" style="--i:4" class="red" d="M23.6,46.3 C25.2,45.8 29.8,44.3 33,43.2 C36.2,42.2 41.4,40.7 43.1,40.2" stroke-width="1.4" opacity="0.6"/>
+</svg>

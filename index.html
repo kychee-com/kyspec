@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kyspec — keep your specs current, make “done” mean verified</title>
+  <meta name="description" content="Kyspec is a spec-driven method for AI coding agents: specs with the code, changes deleted when done, git for the history, no CLI. The OpenSpec spin-off we use at Kychee to build run402.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://kyspec.com/">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#EFEEE6">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1113">
+
+  <meta property="og:title" content="Kyspec — specs with the code, changes deleted when done">
+  <meta property="og:description" content="A spec-driven method for AI coding agents. Git is the history. The model is trusted. Five short skills, one method, one layout check, no Kyspec workflow CLI.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kyspec.com/">
+  <meta property="og:image" content="https://kyspec.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://kyspec.com/og.png">
+
+  <!-- Machine-readable identity, the same publisher @id as kygit.com and run402.com,
+       so the three domains resolve to one Organization. Identity only. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://kyspec.com/#website",
+        "name": "Kyspec",
+        "url": "https://kyspec.com/",
+        "inLanguage": "en",
+        "publisher": { "@id": "https://kychee.com/#organization" }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "https://kyspec.com/#method",
+        "name": "Kyspec",
+        "url": "https://kyspec.com/",
+        "codeRepository": "https://github.com/kychee-com/kyspec",
+        "license": "https://opensource.org/licenses/MIT",
+        "description": "A spec-driven method for AI coding agents: specs with the code, changes deleted when done, git for the history, no CLI.",
+        "publisher": { "@id": "https://kychee.com/#organization" }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/site.css">
+
+  <style>
+    /* Layout: one 860px column set like a document, hand-drawn figures in it
+       (the explanatory ones full-width, the smaller ones beside the prose),
+       each with a pencil caption in Caveat. Tokens live in /assets/site.css. */
+    .hero { padding: 6px 0 10px; }
+    .hero h1 { max-width: 720px; margin: 10px 0 18px; }
+    .hero-sub { font-size: clamp(17px, 2vw, 19.5px); line-height: 1.55; max-width: 680px; margin-bottom: 14px; }
+    .hero-sub strong { color: var(--fg); }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; margin: 22px 0 18px; }
+    .btn { display: inline-block; padding: 11px 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+           color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; transition: border-color .2s ease, background .2s ease; }
+    .btn:hover { border-color: var(--ink); color: var(--ink); text-decoration: none; }
+    .btn-primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .btn-primary:hover { background: var(--ink-strong); border-color: var(--ink-strong); color: var(--bg); }
+    .trust-strip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px;
+                   font-family: var(--mono); font-size: 13px; color: var(--muted); }
+    .trust-strip li { margin: 0; }
+    .trust-strip li::before { content: "\2713\00a0"; color: var(--green); }
+
+    .section h2::after { content: ""; display: block; width: 170px; max-width: 100%; height: 10px; margin-top: 4px; opacity: .75;
+      background: var(--pencil); -webkit-mask: url(/doodles/underline.svg) no-repeat left top / 170px 10px; mask: url(/doodles/underline.svg) no-repeat left top / 170px 10px; }
+    .section:nth-of-type(even) h2::after { -webkit-mask-image: url(/doodles/underline2.svg); mask-image: url(/doodles/underline2.svg); }
+    .section p, .section li { max-width: 700px; }
+    .lede { font-size: clamp(18px, 2.2vw, 21px); line-height: 1.45; color: var(--fg); font-weight: 600; max-width: 720px;
+            border-left: 3px solid var(--red); padding: 4px 0 4px 18px; margin: 18px 0 20px; }
+    .note { font-size: 13.5px; color: var(--muted); }
+    .costs { padding-left: 24px; counter-reset: cost; }
+    .costs li { margin-bottom: 10px; }
+
+    .grid { display: grid; gap: 14px; margin: 18px 0 8px; }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px 18px 14px; min-width: 0; }
+    .card .label { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink); margin-bottom: 8px; }
+    .card p { margin: 0; font-size: 15px; }
+    .card p + p { margin-top: 8px; }
+    .table-wrap { overflow-x: auto; margin: 10px 0 16px; }
+    .table-wrap table { width: 100%; }
+    .table-wrap .compare { min-width: 520px; }
+    .table-wrap td:first-child { white-space: nowrap; }
+    tbody tr { transition: background .2s ease; }
+    tbody tr:hover { background: var(--surface); }
+    .compare td:nth-child(3) { color: var(--fg); }
+    .steps { padding-left: 22px; }
+    .steps > li { margin-bottom: 14px; }
+    .steps > li > strong:first-child { display: block; color: var(--fg); margin-bottom: 2px; }
+    pre.wrap code { white-space: pre-wrap; }
+    .chain-table td:nth-child(2) { white-space: nowrap; }
+
+    /* ask-your-agent prompt, the same shape kygit.com uses */
+    .agent-cta { margin: 14px 0 22px; max-width: 760px; }
+    .agent-cta .lead { margin-bottom: 8px; }
+    .copy-block { display: flex; align-items: stretch; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 10px 0 12px; }
+    .copy-block code { flex: 1; min-width: 0; background: none; border-radius: 0; padding: 12px 14px; color: var(--fg); font-size: 13px; line-height: 1.5; white-space: pre-wrap; cursor: pointer; }
+    .copy-btn { flex: none; background: var(--code-bg); border: none; border-left: 1px solid var(--line); color: var(--ink); font-family: var(--mono);
+                font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 0 16px; cursor: pointer; min-width: 92px; }
+    .copy-btn:hover { background: var(--line); }
+    .copy-btn.copied { color: var(--green); }
+
+    /* Hand-drawn figures. The explanatory ones sit in the column at full
+       width; the smaller ones sit beside the prose on wide screens and become
+       interludes on narrow ones. Captions are in Caveat, pencil-grey. */
+    .doodle { display: block; height: auto; max-width: 100%; }
+    figure { margin: 0; }
+    figcaption { font-family: var(--hand); font-size: 17px; font-weight: 500; color: var(--muted); line-height: 1.25; margin-top: 6px; text-align: center; text-wrap: balance; }
+    .diagram { margin: 22px auto 26px; max-width: 640px; }
+    .diagram .fig-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+    .diagram .fig-scroll .doodle { width: 100%; margin: 0 auto; }
+    .diagram.wide .fig-scroll .doodle { min-width: 480px; }
+    .fig-side { float: right; width: min(320px, 46%); margin: 4px 0 14px 28px; }
+    .fig-side .doodle { width: 100%; }
+    .fig-side figcaption { max-width: 260px; margin-left: auto; margin-right: auto; }
+    .divider-fig { margin: 52px auto 0; max-width: 640px; }
+    .divider-fig .doodle { width: 100%; opacity: .85; }
+    .clear { clear: both; }
+    @media (max-width: 720px) {
+      .grid.three { grid-template-columns: 1fr; }
+      .fig-side { float: none; width: min(320px, 100%); margin: 8px auto 20px; }
+    }
+
+    /* Motion: each figure draws itself once, stroke by stroke in the order the
+       hand made it, when it scrolls into view; sections rise a little as they
+       arrive; the pencil underline is swiped on. Reduced motion turns it all off.
+       Without JS, nothing is hidden and the static images show as they are. */
+    html.js img.doodle { visibility: hidden; }
+    html.js .reveal { opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
+    html.js .reveal.drawn { opacity: 1; transform: none; }
+    html.js .section h2::after { width: 0; transition: width .7s ease .25s; }
+    html.js .section.drawn h2::after { width: 170px; }
+    html.js .kd path:not(.dash) { stroke-dasharray: 1 1.2; stroke-dashoffset: 1.1; }
+    html.js .drawn .kd path:not(.dash) { stroke-dashoffset: 0; transition: stroke-dashoffset .55s ease-out; transition-delay: min(calc(var(--i, 0) * 55ms), 1500ms); }
+    html.js .kd .dash, html.js .kd text { opacity: 0; }
+    html.js .drawn .kd .dash { opacity: .85; transition: opacity .5s ease; transition-delay: min(calc(var(--i, 0) * 55ms), 1500ms); }
+    html.js .drawn .kd text { opacity: 1; transition: opacity .5s ease; transition-delay: min(calc(var(--i, 0) * 55ms + 150ms), 1650ms); }
+    html.js figcaption { opacity: 0; transition: opacity .7s ease .9s; }
+    html.js .drawn figcaption { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      html.js .reveal, html.js .reveal.drawn { opacity: 1; transform: none; transition: none; }
+      html.js .section h2::after, html.js .section.drawn h2::after { width: 170px; transition: none; }
+      html.js .kd path:not(.dash) { stroke-dasharray: none; stroke-dashoffset: 0; transition: none !important; }
+      html.js .kd .dash, html.js .kd text { opacity: 1 !important; transition: none !important; }
+      html.js figcaption { opacity: 1; transition: none; }
+      .btn, tbody tr { transition: none; }
+    }
+  </style>
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="container">
+
+    <header class="site-head">
+      <a class="brand" href="/"><img class="logo" src="/logo.svg" alt="" width="36" height="36"><span class="brand-name">Kyspec</span><span class="brand-say">“key-spec” — specs with the code</span></a>
+      <nav class="site-nav" aria-label="Site">
+        <a href="/METHOD.html">Method</a>
+        <a href="/WHY.html">Why</a>
+        <a href="/MIGRATING.html">Migrating</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/kychee-com/kyspec">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main">
+
+    <!-- ── The pitch ──────────────────────────────────────────────────── -->
+    <section class="hero">
+      <h1>Specs with the code. Changes are born to be deleted.</h1>
+      <p class="hero-sub">
+        <strong>Git is the history. The model is trusted.</strong> Kyspec is the
+        <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> spin-off we use at
+        <a href="https://www.kychee.com/">Kychee</a> to build <a href="https://run402.com/">run402</a>,
+        our open-source backend for AI agents, and our other products.
+      </p>
+      <p class="hero-sub">
+        It puts each change in one file, updates the spec in the same commit as the code, and
+        requires a fresh agent to test the released product before user-facing work is finished.
+        When the work is done, the requirements and decisions live in the spec. The change file is
+        deleted. Git keeps the history.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#install">Try it on your next change</a>
+        <a class="btn" href="/METHOD.html">Read the method</a>
+        <a class="btn" href="/WHY.html">Why we built it</a>
+      </div>
+      <ul class="trust-strip" aria-label="At a glance">
+        <li>Five short skills</li>
+        <li>One method</li>
+        <li>One layout check</li>
+        <li>No Kyspec workflow CLI</li>
+      </ul>
+    </section>
+
+    <!-- ── Why ────────────────────────────────────────────────────────── -->
+    <section class="section reveal" id="why">
+      <h2>The rails were built for a weaker model.</h2>
+      <figure class="fig-side">
+        <img class="doodle" src="/doodles/rails.svg" alt="" width="300" height="170">
+        <figcaption>the scaffolding of 2025 comes down; the model of 2026 never needed it</figcaption>
+      </figure>
+      <p>
+        OpenSpec, Spec Kit and their peers were designed in 2025 for models that lost the thread: a
+        CLI to validate what the model wrote, templates to fix the shape of every artifact, an
+        artifact graph to say which file it may write next, delta files to keep its hands off the
+        main spec, and an archive so nothing it produced was lost. Those were sensible answers at
+        the time, and OpenSpec&rsquo;s distinction between the current spec and the work that changes
+        it is one we still build on.
+      </p>
+      <p>
+        <strong>The model changed. The scaffolding did not.</strong> A frontier model in 2026 reads
+        a long spec, the code it governs and the git log, and writes the new requirement in the
+        spec&rsquo;s own voice. For that model the rails now cost more than they save, in five places:
+      </p>
+      <ol class="costs">
+        <li><strong>Expressibility.</strong> A template gives every change the same four files,
+          whether it renames a field or adds a subsystem. In Kyspec a change is one file with seven
+          sections, any of which may be one line.</li>
+        <li><strong>Throughput.</strong> An artifact graph serializes thinking into proposal, then
+          specs, then design, then tasks, each a round trip through a tool. In Kyspec each step is
+          one page, and the model does the step.</li>
+        <li><strong>Imagination.</strong> Delta blocks make the model think in text diffs instead
+          of system behavior. Kyspec starts with a brainstorm whose partner challenges rather than
+          flatters, and the plan must search prior art and mark each hit keep or override.</li>
+        <li><strong>Implementation quality.</strong> A merge nobody reads lets the spec drift from
+          the code within weeks. In Kyspec the model edits the main spec in the commit that
+          satisfies the requirement, and a fresh agent that never saw the diff checks the released
+          product the way a user would.</li>
+        <li><strong>Context quality.</strong> An archive of dated proposals is dead weight in every
+          grep and every context window. Kyspec deletes the change once the spec has absorbed it and
+          leaves the history to Git.</li>
+      </ol>
+      <p class="lede">
+        Loosening the shackles is not lowering the bar. The bar moves from the shape of the
+        artifacts to the truth of the spec and the evidence of the release.
+      </p>
+      <p>
+        Kyspec trades validation for gates and narrative for evidence: a task line carries a SHA, a
+        count or a dated live check, or it is open, and done means verified by someone who did not
+        build it. The whole argument is in <a href="/WHY.html">WHY.md</a>.
+      </p>
+      <div class="clear"></div>
+    </section>
+
+    <!-- ── What it is ─────────────────────────────────────────────────── -->
+    <section class="section reveal" id="what">
+      <h2>Three tiers, one unit of work, five skills, one gate.</h2>
+      <p>
+        The agent reads five short skills and edits ordinary Markdown files. Product-specific
+        instructions live in <code>AGENTS.md</code>. A dependency-free Node.js check covers the
+        required layout; review and verification cover meaning and behavior.
+      </p>
+      <figure class="diagram">
+        <div class="fig-scroll"><img class="doodle" src="/doodles/tiers.svg" alt="" width="340" height="200"></div>
+        <figcaption>a change is the unit of work between an idea and the spec; it is deleted when done</figcaption>
+      </figure>
+      <div class="grid three">
+        <div class="card">
+          <div class="label">Three tiers</div>
+          <p><strong>Principles</strong>, numbered so specs can cite them. <strong>Specs</strong>,
+          one per capability, in the present tense: stable requirement names, WHEN/THEN scenarios,
+          and Design notes holding decisions under <code>D-&lt;capability&gt;-N</code> ids.
+          <strong>Ideas</strong>, one file each, whose first line is its status.</p>
+        </div>
+        <div class="card">
+          <div class="label">One unit of work</div>
+          <p>A change is one file, <code>changes/&lt;name&gt;.md</code>, with exactly seven
+          sections: Why, Specs, Prior art, Decisions, Tasks, Surface review, Verification. Each can
+          be one line. Once its requirements and decisions are settled into the live specs, the
+          change is deleted.</p>
+        </div>
+        <div class="card">
+          <div class="label">Five skills, one gate</div>
+          <p>Brainstorm, plan, implement, verify, finish: one short page each, no templates fetched
+          at run time, no artifact graph. <code>check-layout.mjs</code> checks the structure of
+          changes and ideas in CI, including the rule against archived or date-prefixed
+          changes.</p>
+        </div>
+      </div>
+      <p class="note">
+        A commit that touches no spec and carries no decision, such as a typo, a dependency bump,
+        or a test fix, needs no change file.
+      </p>
+    </section>
+
+    <!-- ── The chain ──────────────────────────────────────────────────── -->
+    <section class="section reveal" id="chain">
+      <h2>The chain</h2>
+      <p>
+        Five skills run the method. Each accepts the change or idea name and ends by naming the
+        next step, so the chain runs from &ldquo;implement owner/repo#N&rdquo; in one coordinating
+        thread. Verify alone runs in a fresh agent.
+      </p>
+      <figure class="diagram wide">
+        <div class="fig-scroll"><img class="doodle" src="/doodles/chain.svg" alt="" width="540" height="170"></div>
+        <figcaption>verify steps out to a thread that did not write the code, and never reads the diff</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table class="chain-table">
+          <thead><tr><th scope="col">Step</th><th scope="col">Skill</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><a href="/skills/kyspec-brainstorm/SKILL.html">kyspec-brainstorm</a></td><td>Starts or continues an idea file and always ends in one.</td></tr>
+            <tr><td>2</td><td><a href="/skills/kyspec-plan/SKILL.html">kyspec-plan</a></td><td>Writes the change file.</td></tr>
+            <tr><td>3</td><td><a href="/skills/kyspec-implement/SKILL.html">kyspec-implement</a></td><td>Works the tasks, pushes, records CI, then runs the product&rsquo;s Release skills and records their evidence.</td></tr>
+            <tr><td>4</td><td><a href="/skills/kyspec-verify/SKILL.html">kyspec-verify</a></td><td>Checks the released product in a fresh thread without reading the code or diff.</td></tr>
+            <tr><td>5</td><td><a href="/skills/kyspec-finish/SKILL.html">kyspec-finish</a></td><td>Settles the change into the specs and deletes it.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        A sixth page, <a href="/skills/kyspec-migrate/SKILL.html">kyspec-migrate</a>, is outside the
+        chain: a repository arriving from OpenSpec runs it once, on a branch.
+      </p>
+    </section>
+
+    <!-- ── A change's life ────────────────────────────────────────────── -->
+    <section class="section reveal" id="life">
+      <h2>A change&rsquo;s life</h2>
+      <figure class="diagram wide">
+        <div class="fig-scroll"><img class="doodle" src="/doodles/life.svg" alt="" width="620" height="190"></div>
+        <figcaption>the spec changes in the same commit as the code; at the end the change is deleted and the spec carries the decision</figcaption>
+      </figure>
+      <p>
+        Consider the reading-list example in <a href="https://github.com/kychee-com/kyspec/tree/main/examples/lantern">examples/lantern</a>:
+        a reader should be able to archive a book and restore it without losing its notes or
+        reading status.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Step</th><th scope="col">What happens</th></tr></thead>
+          <tbody>
+            <tr><td>Plan</td><td>One change records the requirement, relevant prior decisions, tasks, and verification scope.</td></tr>
+            <tr><td>Implement</td><td>The requirement lands in the main spec with the code. The builder records CI and release evidence.</td></tr>
+            <tr><td>Verify</td><td>A fresh agent archives an in-progress book and restores it through the released product. The book returns, but its previous reading status is lost.</td></tr>
+            <tr><td>Fix</td><td>The verifier records the failure and adds a task. The builder fixes the behavior and releases again.</td></tr>
+            <tr><td>Finish</td><td>A new verification cycle passes. Lasting decisions move into the spec, and the change file is deleted.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lede">
+        The task list was complete. The user&rsquo;s workflow still failed. Kyspec makes that check
+        part of finishing.
+      </p>
+      <p>
+        The <a href="/examples/">example workflows</a> walk through this change and four other
+        situations: a fix that needs no change file, the whole chain from an issue, a brainstorm
+        that parks, a verify that fails, and two sessions on one repository.
+      </p>
+    </section>
+
+    <!-- ── Compared with OpenSpec ─────────────────────────────────────── -->
+    <section class="section reveal" id="compared">
+      <h2>Compared with OpenSpec</h2>
+      <p>
+        This compares Kyspec&rsquo;s method with OpenSpec&rsquo;s documented standard workflow.
+        OpenSpec supports customization; these are the choices Kyspec makes for you.
+      </p>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead><tr><th scope="col">Concern</th><th scope="col">OpenSpec</th><th scope="col">Kyspec</th></tr></thead>
+          <tbody>
+            <tr><td>Updating the current spec</td><td>Delta specs merged through sync or archive</td><td>Main spec updated in the implementing commit</td></tr>
+            <tr><td>Checking implementation</td><td>Optional, report-only verification against artifacts and code</td><td>Required fresh-thread check of released behavior for changed user-facing flows</td></tr>
+            <tr><td>Finishing a change</td><td>Move the change to an archive directory</td><td>Settle requirements and decisions, then delete the change</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The full comparison, with sources checked October 2026, is in
+        <a href="/WHY.html#how-the-choices-differ">WHY.md</a>, which also explains the tradeoffs and
+        what prompted us to switch.
+      </p>
+    </section>
+
+    <!-- ── Install ────────────────────────────────────────────────────── -->
+    <section class="section reveal" id="install">
+      <h2>Try Kyspec on your next change</h2>
+      <p>
+        Start with a small change you already need. The useful test is whether the next session
+        can see what changed, why it changed, and how it was verified. Four files, three lines:
+      </p>
+<pre><code>git clone https://github.com/kychee-com/kyspec /tmp/kyspec
+cp /tmp/kyspec/METHOD.md /tmp/kyspec/check-layout.mjs .
+cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claude/skills/</code></pre>
+      <figure class="fig-side">
+        <img class="doodle" src="/doodles/files.svg" alt="" width="300" height="130">
+        <figcaption>four files: the method, the skills, the gate, and your declarations</figcaption>
+      </figure>
+      <ol class="steps">
+        <li><strong>Copy the method and skills.</strong> <code>METHOD.md</code> goes to your
+          repository root. The five chain directories under <code>skills/</code> go into your coding
+          agent&rsquo;s skills directory, preserving each <code>SKILL.md</code>: <code>.claude/skills/</code>
+          for <a href="https://code.claude.com/docs/en/skills">Claude Code</a> (<code>/kyspec-brainstorm &lt;topic&gt;</code>),
+          <code>.agents/skills/</code> for <a href="https://learn.chatgpt.com/docs/build-skills">Codex</a>
+          (<code>$kyspec-brainstorm &lt;topic&gt;</code>). For another host or a cloud session, use its
+          supported skill installation mechanism. A repository arriving from OpenSpec also takes
+          <code>kyspec-migrate</code>, for one run.</li>
+        <li><strong>Declare your product&rsquo;s rules.</strong> Add <code>## Method declarations</code>
+          to <code>AGENTS.md</code> and name the documents and skills your product actually uses.
+          Omit declarations that do not apply; the method defines their behavior in
+          <a href="/METHOD.html#method-declarations">Method declarations</a>.
+<pre class="wrap"><code>## Method declarations
+
+- **Principles:** docs/principles.md, numbered; specs cite principles #N.
+- **Release:** /deploy for the API and site; /publish for the npm package.
+- **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
+- **Coordination room:** the channel and procedure for claiming an area and announcing completion.</code></pre></li>
+        <li><strong>Add the layout check (recommended).</strong> Run <code>node check-layout.mjs</code>
+          in CI. It checks the structure of changes and ideas, including the rule against archived
+          or date-prefixed changes. Reviewers and the finish workflow assess the requirements and
+          evidence.</li>
+        <li><strong>Start the work.</strong> Invoke <code>kyspec-brainstorm</code> for an idea, or ask
+          your agent to use Kyspec to implement a named issue. The skills carry the work through
+          planning, implementation, your release process, verification, and finishing. Verification
+          of a changed user-facing flow runs in a <strong>fresh thread with access to the released
+          product</strong>; that independent check is part of the method.</li>
+      </ol>
+      <div class="agent-cta">
+        <p class="lead"><strong>Or let your agent do it:</strong> paste this into your coding agent&rsquo;s chat.</p>
+        <div class="copy-block">
+          <code onclick="copyPrompt(this)">Set up Kyspec in this repository: clone https://github.com/kychee-com/kyspec, copy METHOD.md and check-layout.mjs to the repository root and the five kyspec-* chain skills into the skills directory, then add "## Method declarations" to AGENTS.md as https://kyspec.com/METHOD.html describes.</code>
+          <button type="button" class="copy-btn" onclick="copyPrompt(this.previousElementSibling)">Copy</button>
+        </div>
+      </div>
+      <div class="clear"></div>
+    </section>
+
+    <!-- ── Moving from OpenSpec ───────────────────────────────────────── -->
+    <section class="section reveal" id="migrate">
+      <h2>Moving from OpenSpec</h2>
+      <p class="lede">
+        Keep your requirement prose and WHEN/THEN scenarios. Change where the knowledge lives and
+        how work finishes.
+      </p>
+      <p>
+        The full map, artifact by artifact, is <a href="/MIGRATING.html">MIGRATING.md</a>, and the
+        sixth skill, <a href="/skills/kyspec-migrate/SKILL.html">kyspec-migrate</a>, runs it on a
+        branch and records the migration as your first change.
+        <a href="https://github.com/kychee-com/kyspec/tree/main/examples/migration">examples/migration</a>
+        shows one repository before and after. The transition is a repository edit; in outline:
+      </p>
+      <ol>
+        <li><strong>Reconcile the current behavior.</strong> Fold already implemented delta requirements into the current specs. Keep unimplemented proposals separate.</li>
+        <li><strong>Move the specs into the Kyspec layout.</strong> Keep requirement names and scenarios, and update links to moved specs.</li>
+        <li><strong>Convert active changes</strong> to <code>changes/&lt;name&gt;.md</code> with exactly the seven sections.</li>
+        <li><strong>Keep the decisions.</strong> Move still-relevant design decisions into the owning spec&rsquo;s Design notes under stable <code>D-&lt;capability&gt;-N</code> ids, and repoint code, test, and documentation references.</li>
+        <li><strong>Retire completed plans</strong> once their lasting requirements and decisions are retained.</li>
+        <li><strong>Switch the instructions and check the layout.</strong> Install the skills, add your declarations, update agent instructions to use Kyspec, and run the layout check.</li>
+      </ol>
+      <div class="agent-cta">
+        <div class="copy-block">
+          <code onclick="copyPrompt(this)">Migrate this repository from OpenSpec to Kyspec: read https://kyspec.com/MIGRATING.html, install the kyspec-migrate skill from https://github.com/kychee-com/kyspec, and run it on a branch.</code>
+          <button type="button" class="copy-btn" onclick="copyPrompt(this.previousElementSibling)">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Who uses it ────────────────────────────────────────────────── -->
+    <section class="section reveal" id="kychee">
+      <h2>How we use it at Kychee</h2>
+      <p>
+        Kyspec grew out of our day-to-day work on run402. We had shipped changes whose spec deltas
+        still needed promotion, and code that cited decisions in archived plans. We wanted current
+        contracts, durable rationale, and an explicit check of the released experience.
+      </p>
+      <p>
+        This is the method we now use at Kychee, with parallel Claude Code and Codex sessions. Our
+        release, review, and coordination details became declarations so you can use the same
+        method with your own stack. Kyspec does not require run402.
+      </p>
+    </section>
+
+    <!-- ── Read more ──────────────────────────────────────────────────── -->
+    <section class="section reveal" id="read-more">
+      <h2>Read more</h2>
+      <ul>
+        <li><a href="/METHOD.html">METHOD.md</a>: the rules, including the five skills, seven change sections, verification, and finishing.</li>
+        <li><a href="/WHY.html">WHY.md</a>: the reasons for the method, its OpenSpec lineage, and adoption questions.</li>
+        <li><a href="/MIGRATING.html">MIGRATING.md</a>: moving from OpenSpec, artifact by artifact.</li>
+        <li><a href="https://github.com/kychee-com/kyspec/tree/main/skills">skills/</a>: the five skills of the chain, and <code>kyspec-migrate</code>.</li>
+        <li><a href="/check-layout.mjs">check-layout.mjs</a> and <a href="https://github.com/kychee-com/kyspec/blob/main/check-layout.test.mjs">its tests</a>: the structural check.</li>
+        <li><a href="/examples/">examples/</a>: a product snapshot, worked workflows, and a migration before and after.</li>
+        <li><a href="https://github.com/kychee-com/kyspec">github.com/kychee-com/kyspec</a>: the repository. Open an issue for a page that misled your agent, a gap in the method, or a workflow it should cover.</li>
+      </ul>
+    </section>
+
+    </main>
+
+    <figure class="divider-fig reveal">
+      <img class="doodle" src="/doodles/divider.svg" alt="" width="850" height="54">
+      <figcaption>the change was there once; git log still has it</figcaption>
+    </figure>
+
+    <footer class="site-foot">
+      <span>MIT. Made by <a href="https://www.kychee.com/">Kychee</a>, the team behind <a href="https://run402.com/">run402</a>. Evolved from <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a>.</span>
+      <nav aria-label="Footer">
+        <a href="/METHOD.html">Method</a>
+        <a href="/WHY.html">Why</a>
+        <a href="/MIGRATING.html">Migrating</a>
+        <a href="/examples/">Examples</a>
+        <a href="https://github.com/kychee-com/kyspec">GitHub</a>
+        <a href="https://kygit.com/">KyGit</a>
+      </nav>
+    </footer>
+  </div>
+
+  <script>
+    // The figures are static SVG files, drawn by hand. With JS, each one is
+    // inlined so its strokes can replay in draw order when it scrolls into
+    // view; sections rise as they arrive. Without JS the images show as they
+    // are, and prefers-reduced-motion turns every animation off.
+    (function () {
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var show = function (el) { el.classList.add("drawn"); };
+      var io = ("IntersectionObserver" in window && !reduce) ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }) : null;
+      var reveals = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+      reveals.forEach(function (el) { if (io) io.observe(el); else show(el); });
+
+      var imgs = Array.prototype.slice.call(document.querySelectorAll("img.doodle"));
+      var give = function (img) { img.style.visibility = "visible"; };
+      if (!window.fetch || !window.DOMParser) { imgs.forEach(give); return; }
+      imgs.forEach(function (img) {
+        fetch(img.getAttribute("src")).then(function (r) { return r.ok ? r.text() : null; }).then(function (txt) {
+          if (!txt) { give(img); return; }
+          var doc = new DOMParser().parseFromString(txt, "image/svg+xml");
+          var el = doc.documentElement;
+          if (!el || el.nodeName !== "svg") { give(img); return; }
+          el.setAttribute("class", (el.getAttribute("class") || "kd") + " doodle");
+          if (img.getAttribute("width")) el.setAttribute("width", img.getAttribute("width"));
+          if (img.getAttribute("height")) el.setAttribute("height", img.getAttribute("height"));
+          var host = img.closest(".reveal");
+          var wasDrawn = host && host.classList.contains("drawn");
+          if (wasDrawn) host.classList.remove("drawn");
+          img.parentNode.replaceChild(el, img);
+          if (wasDrawn) { void el.getBoundingClientRect(); requestAnimationFrame(function () { host.classList.add("drawn"); }); }
+        }).catch(function () { give(img); });
+      });
+      // safety net: whatever has not arrived or drawn after 7s is shown as is
+      setTimeout(function () {
+        reveals.forEach(show);
+        document.querySelectorAll("img.doodle").forEach(give);
+      }, 7000);
+    })();
+
+    // Copy-to-clipboard for the ask-your-agent prompts.
+    function copyPrompt(el) {
+      var text = el.textContent;
+      var btn = el.nextElementSibling;
+      var reset = function () { btn.textContent = "Copy"; btn.classList.remove("copied"); };
+      var mark = function () { btn.textContent = "Copied!"; btn.classList.add("copied"); setTimeout(reset, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(mark, mark);
+      } else {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.focus(); ta.select();
+          document.execCommand("copy"); document.body.removeChild(ta);
+        } catch (e) { /* no-op */ }
+        mark();
+      }
+    }
+  </script>
+</body>
+</html>
