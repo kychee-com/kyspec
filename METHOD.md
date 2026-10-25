@@ -113,6 +113,10 @@ answer. Verify alone runs in a fresh agent.
 Scale the writing to the change: every section may be one line. The five skills are the same
 for every product; product-specific details live in declarations.
 
+A sixth page, **kyspec-migrate**, is outside the chain: a repository arriving from OpenSpec
+runs it once, on a branch, and it ends by recording the migration as that repository's first
+change (`MIGRATING.md`).
+
 ## Method declarations
 
 In `AGENTS.md`, a product adds `## Method declarations` and declares the four things the

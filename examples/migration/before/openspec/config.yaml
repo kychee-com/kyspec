@@ -1,0 +1,10 @@
+schema: spec-driven
+context: |
+  Lantern is a reading list: an HTTP API under src/api/ and one page under src/web/ that
+  calls it. Node 22, no framework. Books are never deleted; a book leaves the list by being
+  archived. A change to a route moves openapi.json in the same commit.
+rules:
+  proposal:
+    - Name the reader the change serves.
+  tasks:
+    - Tests first.

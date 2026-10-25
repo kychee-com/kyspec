@@ -119,8 +119,9 @@ describe("layoutProblems", () => {
     const root = tree({ "changes/archive/x/x.md": change, "changes/y.md": "## Why\n", "ideas/z.md": "# Z\n" });
     assert.equal(layoutProblems(root).length, 3);
   });
-  it("passes the example product in this repository", () => {
+  it("passes the example product and the migrated tree in this repository", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     assert.deepEqual(layoutProblems(join(here, "examples", "lantern")), []);
+    assert.deepEqual(layoutProblems(join(here, "examples", "migration", "after")), []);
   });
 });

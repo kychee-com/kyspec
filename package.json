@@ -10,6 +10,6 @@
   },
   "scripts": {
     "test": "node --test check-layout.test.mjs",
-    "check": "node check-layout.mjs examples/lantern"
+    "check": "node check-layout.mjs examples/lantern && node check-layout.mjs examples/migration/after"
   }
 }

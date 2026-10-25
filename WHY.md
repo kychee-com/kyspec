@@ -129,7 +129,7 @@ This comparison follows OpenSpec's [command reference](https://github.com/Fissio
 
 Yes. Keep the requirement prose and WHEN/THEN scenarios, and review them against what the system currently does. Reconcile shipped deltas before moving to the Kyspec layout.
 
-Active changes need the seven-section format. Lasting decisions need a home in the current spec, and references to old change paths need updating. [Moving from OpenSpec](README.md#moving-from-openspec) gives the migration steps. This is a change of method and layout, with reusable source material.
+Active changes need the seven-section format. Lasting decisions need a home in the current spec, and references to old change paths need updating. [MIGRATING.md](MIGRATING.md) maps every artifact and gives the order; the `kyspec-migrate` skill runs it. This is a change of method and layout, with reusable source material.
 
 ### Why not configure OpenSpec to work this way?
 
