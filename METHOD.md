@@ -186,8 +186,9 @@ concrete reason.
 
 **Verification.** kyspec-implement records the CI run for the pushed commit and the deploy
 or publish result with its live check, or `Release: none — <reason>`. This is followed by the
-verify cycles ("Verify"), or `Verify: skipped — <reason>` when no user-facing flow changed.
-kyspec-implement writes the skip line.
+verify cycles ("Verify"), preceded by `Verify budget: N — <reason>` when the change needs
+other than the default five, or by `Verify: skipped — <reason>` when no user-facing flow
+changed. kyspec-implement writes the skip line.
 
 ## Verify
 
@@ -212,6 +213,24 @@ The verifier follows these rules:
   outside the verdict. Finish strikes it or moves it to an idea unless a test covers it.
 - **Stay within the free path.** Spend nothing beyond the product's free path and remove
   what the verification creates.
+
+**The loop.** The thread that ran kyspec-implement drives verification. It starts the verifier
+as a fresh agent given only the change name, reads the cycle from the change file (never from
+the agent's summary alone), works the tasks a failure added, releases, and starts the next
+verifier, which reads the earlier cycles and runs the whole scope again, never only the failed
+item. The loop ends on the first of three:
+
+1. **Pass.** Every in-scope item passes; kyspec-finish follows.
+2. **No progress.** A cycle fails the same item with the same observation as the cycle before.
+   The fix did not take, so the diagnosis is wrong, not the code, and a person decides.
+3. **The budget.** Five cycles, unless the change's Verification says
+   `Verify budget: N — <reason>` before its first cycle. A cycle count, never a clock: the
+   product's release time bounds the loop already.
+
+At a stop short of pass the change stays open with its failed tasks unchecked, Verification
+gains `Verify stopped after cycle N — <what remains>`, and the user is told, with the
+coordination room told at high importance when one is declared. An item the builder cannot
+unblock is out of reach, and goes the route above.
 
 ## Finishing a change
 

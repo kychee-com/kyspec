@@ -35,10 +35,11 @@ again, in a fresh thread, never this one.
 
 A new subagent, given only the change name, reads Why, Specs and Verification. It sees cycle 1
 and runs the same scope, all three scenarios, not just the one that failed; a fix can break a
-neighbor.
+neighbor. The thread that built the change drives this loop and stops it on a pass, on a
+cycle that makes no progress, or at the budget of five cycles (method "Verify").
 
 ```
-Verify cycle 2 — 2026-10-21, a fresh session, against https://lantern.example
+Verify cycle 2 of 5 — 2026-10-21, a fresh session, against https://lantern.example
 Scope: specs/reading-list.md: An archived book leaves the list and keeps its notes (Archiving, Archiving twice, Unarchiving)
 - Archiving: pass — `POST /books/b_22/archive` → `200`; absent from the list; present in `?archived=true` with notes
 - Archiving twice: pass — second `POST` → `200`, body identical

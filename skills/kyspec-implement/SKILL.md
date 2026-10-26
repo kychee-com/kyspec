@@ -50,7 +50,13 @@ Name the next step:
 - `/kyspec-verify <name>` when the change touched a user-facing flow (the declared surface, or
   any UI flow). It must run in a fresh thread that did not write the code, so in a one-thread
   chain start it as a fresh agent (a subagent or new session given only the change name),
-  never inline.
+  never inline. This thread drives the loop (method "Verify"): read the cycle from the change
+  file, work the tasks it added, release, and start the next fresh verifier, until a cycle
+  passes, a cycle makes no progress (the same item fails with the same observation as the
+  cycle before), or the budget is spent (five cycles, or the `Verify budget` line under
+  Verification). At a stop short of pass, leave the tasks unchecked, write
+  `Verify stopped after cycle N — <what remains>` under Verification, and tell the user (and
+  the room at high importance, if one is declared).
 - Otherwise write `Verify: skipped — <reason>` under Verification and name
   `/kyspec-finish <name>`.
 - Stopped short: name the tasks left and that `/kyspec-implement <name>` resumes them.

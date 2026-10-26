@@ -37,13 +37,16 @@ environment and the earlier cycles. Nothing else of the change, no diff, no comm
 4. **Append the cycle** under `## Verification`:
 
    ```
-   Verify cycle <n> — <YYYY-MM-DD>, <who ran it>, against <environment>
+   Verify cycle <n> of <N> — <YYYY-MM-DD>, <who ran it>, against <environment>
    Scope: <spec path: requirement>, …   Out of reach: <requirement — why>, …
    - <requirement>: pass | fail | blocked — <what was observed>
    Verdict: pass | fail
    ```
 
-   The verdict is `pass` only when every in-scope item passes.
+   `N` is the budget: five, or the `Verify budget: N — <reason>` line under Verification. The
+   verdict is `pass` only when every in-scope item passes. When an item fails with the same
+   observation as in the cycle before, write `Verdict: fail — no progress on <requirement>`,
+   so the driving thread stops instead of trying again (method "Verify").
 5. **On a failure or a block,** add one unchecked task per item under `## Tasks`, naming the
    requirement and what was observed, for kyspec-implement. Fix nothing here.
 6. **Commit** the change file the way `AGENTS.md` says.

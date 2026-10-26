@@ -49,7 +49,7 @@ Verdict: pass
 
 Release: 2b7e4d0 on main, CI run 118 green; `/lantern-deploy` d_0421 live at https://lantern.example (2026-10-20, `GET /books?archived=true` answers `200 []`).
 
-Verify cycle 1 — 2026-10-20, a fresh session, against https://lantern.example
+Verify cycle 1 of 5 — 2026-10-20, a fresh session, against https://lantern.example
 Scope: specs/reading-list.md: An archived book leaves the list and keeps its notes (Archiving, Archiving twice, Unarchiving)
 - Archiving: pass — `POST /books/b_17/archive` → `200`; absent from `GET /books`; present in `GET /books?archived=true` with its 2 notes intact
 - Archiving twice: pass — second `POST` → `200`, body identical to the first

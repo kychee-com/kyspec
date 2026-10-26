@@ -57,7 +57,7 @@ For every changed user-facing flow, Kyspec requires a verifier in a fresh thread
 
 The verifier reads the change's Why and Specs, along with the specs they name. It uses what the user can use: the released app, or public documentation and published clients for a developer-facing product. It checks production or a deployed branch. It never reads the implementation diff.
 
-For each requirement, it records what it observed and whether the result passed, failed, or was blocked. Failures become tasks for the builder. The builder fixes and releases; a new verification cycle checks the result.
+For each requirement, it records what it observed and whether the result passed, failed, or was blocked. Failures become tasks for the builder. The builder fixes and releases; a new verification cycle checks the result, up to a budget of five cycles by default, and the loop stops early when a cycle makes no progress.
 
 This matters because a builder can carry the same mistaken interpretation into the implementation and its tests. A fresh thread starts from the requirement and has to demonstrate the behavior through the product.
 

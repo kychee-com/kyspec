@@ -24,7 +24,7 @@ The main spec changes in the commit that implements the requirement. The reviewe
 
 ### Have a fresh agent check what users actually get
 
-For a changed user-facing flow, the verifier starts in a fresh thread. It reads the requirements, uses the released product through the user's interface, and records what happened. It never reads the implementation diff. Failures become tasks for the builder, followed by another release and verification cycle.
+For a changed user-facing flow, the verifier starts in a fresh thread. It reads the requirements, uses the released product through the user's interface, and records what happened. It never reads the implementation diff. Failures become tasks for the builder, followed by another release and a fresh verification cycle, up to a budget the change can set, five by default.
 
 That gives you a concrete answer to "does the shipped behavior meet the requirement?"
 
