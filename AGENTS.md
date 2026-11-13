@@ -14,5 +14,6 @@ no build and no dependency.
   change, and stays one; its README says where in the chain it stands. `examples/migration`
   keeps `before/` as an OpenSpec 1.15 layout on purpose; only `after/` is a Kyspec layout.
 - Every page stays short (method #9). A skill that grows past one page is doing a tool's job.
-- Kyspec is edited in its maintainer's source repository and mirrored here. Issues are
+- Kyspec's source is the `kyspec/` directory of its maintainer's monorepo, published from there
+  to `kychee-com/kyspec` on every push; edit it there, never in the public repository. Issues are
   welcome; a pull request is pulled back by hand.
