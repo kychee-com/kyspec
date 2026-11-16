@@ -20,9 +20,14 @@ no-change-file line (method "A change"), just do the work. Read the whole change
    convention asks, make it pass, keep the diff to the task. When the task satisfies a
    requirement under `## Specs`, edit the main spec in the same commit as the code (method #1):
    add or amend the requirement and its scenarios, present tense, and replace its text under
-   Specs with one line, `→ in <spec path>`. Tick the task with evidence (method #6): a count, a
-   dated live check, `~~struck~~ not needed — D<n>`, or a commit SHA, recorded once it is on
-   the main branch (a commit cannot name itself, and a rebase rewrites SHAs).
+   Specs with one line, `→ in <spec path>`. A decision that governs the code the task lands
+   moves the same way (method #3): into the owning spec's `## Design notes` as
+   `D-<capability>-N`, next free N, rationale and rejected alternative kept, the code citing
+   the D-id, and one line left under Decisions, `D<n> → D-<capability>-N in <spec path>`. Tick
+   the task with evidence (method #6): a count, a dated live check, `~~struck~~ not needed —
+   D<n>`, `~~struck~~ moved — <where>`, or a commit SHA, recorded once it is on the main branch
+   (a commit cannot name itself, and a rebase rewrites SHAs). A task blocked outside the work
+   gets the waiting marker (method "A change"); missing access is acquired, never marked.
 3. **Change course in the file.** A design surprise becomes a new or amended decision under
    Decisions plus the tasks it implies, never an unrecorded detour. Ask the user only for a
    choice that the change, its prior art and the specs cannot settle.
@@ -59,4 +64,6 @@ Name the next step:
   the room at high importance, if one is declared).
 - Otherwise write `Verify: skipped — <reason>` under Verification and name
   `/kyspec-finish <name>`.
-- Stopped short: name the tasks left and that `/kyspec-implement <name>` resumes them.
+- Stopped short: first move out each open task that serves no requirement and no decision
+  (method "A change") and mark each one that waits; then name the tasks left and that
+  `/kyspec-implement <name>` resumes them.

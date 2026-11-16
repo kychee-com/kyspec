@@ -28,8 +28,11 @@ environment and the earlier cycles. Nothing else of the change, no diff, no comm
 2. **Be the user.** Hold only what the product's user holds: its public docs and published
    clients for a product whose users are agents or developers, the app in a browser for one used
    by people. No repository source, no staff credentials, no internal endpoints, unless this
-   product's user has them too. Spend nothing beyond the product's free path, and remove what
-   you create the way `AGENTS.md` says, so no human decision is left behind.
+   product's user has them too. Sign in with the identities `AGENTS.md` "Method declarations"
+   lists under Verifier identities; a kind of user a scenario needs with no identity yet, make
+   the way that user would get one and record it there first. A missing sign-in is never a
+   block. Spend nothing beyond the product's free path, and remove what you create the way
+   `AGENTS.md` says, so no human decision is left behind.
 3. **Use the released thing,** against production or the deployed branch that Verification
    names, never a local build. For each scenario, do the WHEN, observe the THEN, and keep what
    you saw (the command and its output, the URL and the response, the screen). A scenario in
@@ -48,7 +51,8 @@ environment and the earlier cycles. Nothing else of the change, no diff, no comm
    observation as in the cycle before, write `Verdict: fail — no progress on <requirement>`,
    so the driving thread stops instead of trying again (method "Verify").
 5. **On a failure or a block,** add one unchecked task per item under `## Tasks`, naming the
-   requirement and what was observed, for kyspec-implement. Fix nothing here.
+   requirement and what was observed, for kyspec-implement; an item blocked on a person, a
+   date or a release carries the waiting marker (method "A change"). Fix nothing here.
 6. **Commit** the change file the way `AGENTS.md` says.
 
 ## End

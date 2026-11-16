@@ -189,8 +189,8 @@
       <p class="hero-sub">
         It puts each change in one file, updates the spec in the same commit as the code, and
         requires a fresh agent to test the released product before user-facing work is finished.
-        When the work is done, the requirements and decisions live in the spec. The change file is
-        deleted. Git keeps the history.
+        As the work ships, its requirements and decisions move into the spec. When it is done, the
+        change file is deleted. Git keeps the history.
       </p>
       <div class="cta-row">
         <a class="btn btn-primary" href="#install">Try it on your next change</a>
@@ -343,10 +343,10 @@
           <thead><tr><th scope="col">Step</th><th scope="col">What happens</th></tr></thead>
           <tbody>
             <tr><td>Plan</td><td>One change records the requirement, relevant prior decisions, tasks, and verification scope.</td></tr>
-            <tr><td>Implement</td><td>The requirement lands in the main spec with the code. The builder records CI and release evidence.</td></tr>
+            <tr><td>Implement</td><td>The requirement and the decisions behind it land in the main spec with the code. The builder records CI and release evidence.</td></tr>
             <tr><td>Verify</td><td>A fresh agent archives an in-progress book and restores it through the released product. The book returns, but its previous reading status is lost.</td></tr>
             <tr><td>Fix</td><td>The verifier records the failure and adds a task. The builder fixes the behavior and releases again.</td></tr>
-            <tr><td>Finish</td><td>A new verification cycle passes. Lasting decisions move into the spec, and the change file is deleted.</td></tr>
+            <tr><td>Finish</td><td>A new verification cycle passes. The spec already holds everything that shipped, and the change file is deleted.</td></tr>
           </tbody>
         </table>
       </div>

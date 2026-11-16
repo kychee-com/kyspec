@@ -29,9 +29,11 @@ commit; when the request was "implement …", just do the work, outside the chai
    client, its docs), even from code outside them, read method "Before planning a surface
    change" and the documents the declaration names, now and again before implementing.
 3. **Prior art is a real search,** not memory: the `## Design notes` D-ids and the requirements
-   of the specs in the area, `ideas/` on the topic, and the declared principles in play. Each
-   relevant hit gets one line marked `keep` or `override`; every override is restated as a
-   decision. Drift found on the way (a spec the code contradicts) that this change does not fix
+   of the specs in the area, the open changes whose Specs name those specs (grep `changes/` for
+   each spec path; read their Specs and Decisions), `ideas/` on the topic, and the declared
+   principles in play. Each relevant hit gets one line marked `keep` or `override`; every
+   override is restated as a decision, and one of an open change's decision is settled with
+   that change, never past it. Drift found on the way (a spec the code contradicts) that this change does not fix
    becomes an issue or an idea, named in one line.
 4. **Write `changes/<name>.md`** with exactly these H2 sections, in this order (the layout
    gate enforces it). An H1 title and a `Source:` line naming the issue or idea may precede

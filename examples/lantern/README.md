@@ -13,12 +13,12 @@ What is here:
 
 | Path | Tier | What it shows |
 | --- | --- | --- |
-| `AGENTS.md` | | The three declaration lines a product writes, and the rules the skills defer to |
+| `AGENTS.md` | | The four declaration lines this product writes, and the rules the skills defer to |
 | `docs/principles.md` | 1 | A product's own numbered principles, cited by specs and changes |
-| `specs/reading-list.md` | 2 | A spec: Purpose, Requirements with scenarios, Design notes with D-ids; one requirement already moved in by the open change |
+| `specs/reading-list.md` | 2 | A spec: Purpose, Requirements with scenarios, Design notes with D-ids; one requirement and two decisions already moved in by the open change, with the code that shipped them |
 | `ideas/shared-lists.md` | 3 | A parked idea, with the reason on its first line |
 | `ideas/export-csv.md` | 3 | A seed |
-| `changes/archive-a-book.md` | | The change, all seven sections, mid-flight: evidence on tasks, a surface review, release evidence, a failed verify cycle |
+| `changes/archive-a-book.md` | | The change, all seven sections, mid-flight: pointer lines for what has moved, evidence on tasks, a surface review, release evidence, a failed verify cycle |
 | `.claude/skills/lantern-api-review/` | | The product's own surface-review skill, named by the declaration |
 | `.claude/skills/lantern-deploy/` | | The product's own release skill, named by the declaration |
 

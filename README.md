@@ -4,7 +4,7 @@
 
 Kyspec is the [OpenSpec](https://github.com/Fission-AI/OpenSpec) spin-off we use at [Kychee](https://www.kychee.com/) to build [run402](https://run402.com/), our open-source backend for AI agents, and our other products.
 
-It puts each change in one file, updates the spec in the same commit as the code, and requires a fresh agent to test the released product before user-facing work is finished. When the work is done, the requirements and decisions live in the spec. The change file is deleted. Git keeps the history.
+It puts each change in one file, updates the spec in the same commit as the code, and requires a fresh agent to test the released product before user-facing work is finished. As the work ships, its requirements and decisions move into the spec. When it is done, the change file is deleted. Git keeps the history.
 
 If you use OpenSpec, the foundations are familiar: named requirements, WHEN/THEN scenarios, and a clear separation between what the product does and what you intend to change. Kyspec gives that foundation a smaller workflow and a stricter definition of done.
 
@@ -30,7 +30,7 @@ That gives you a concrete answer to "does the shipped behavior meet the requirem
 
 ### Keep decisions where the next agent will find them
 
-Decisions that still govern the code move into the owning spec's Design notes under stable IDs such as `D-reading-list-3`. Code and tests can cite them. The next plan must find relevant prior decisions and explicitly mark each `keep` or `override`, with a reason for every override.
+A decision moves into the owning spec's Design notes, under a stable ID such as `D-reading-list-3`, in the commit that ships the code it governs. Code and tests cite it from then on, and an open change holds only what has not shipped. The next plan must find relevant prior decisions and explicitly mark each `keep` or `override`, with a reason for every override.
 
 Your repository keeps the reasoning that future work needs.
 
@@ -51,10 +51,10 @@ Consider the reading-list example in [`examples/lantern`](examples/lantern): a r
 | Step | What happens |
 | --- | --- |
 | Plan | One change records the requirement, relevant prior decisions, tasks, and verification scope. |
-| Implement | The requirement lands in the main spec with the code. The builder records CI and release evidence. |
+| Implement | The requirement and the decisions behind it land in the main spec with the code. The builder records CI and release evidence. |
 | Verify | A fresh agent archives an in-progress book and restores it through the released product. The book returns, but its previous reading status is lost. |
 | Fix | The verifier records the failure and adds a task. The builder fixes the behavior and releases again. |
-| Finish | A new verification cycle passes. Lasting decisions move into the spec, and the change file is deleted. |
+| Finish | A new verification cycle passes. The spec already holds everything that shipped, and the change file is deleted. |
 
 **The task list was complete. The user's workflow still failed. Kyspec makes that check part of finishing.**
 

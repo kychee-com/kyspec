@@ -29,8 +29,13 @@ Tests first, because `AGENTS.md` asks for it: four tests for archive, idempotenc
 list, and unarchive. Then the routes. In the same commit it edits `specs/reading-list.md`: the
 requirement "An archived book leaves the list and keeps its notes" with three scenarios, present
 tense, and replaces the text under the change's `## Specs` with `→ in specs/reading-list.md`.
-That commit is `9f3c2a1`, and `openapi.json` moves in it too, because Lantern's `AGENTS.md`
-puts a route and its documentation in one commit (method #10). The page follows in `2b7e4d0`.
+The two decisions govern those routes, so they move in the same commit (method #3): D1 becomes
+`D-reading-list-3` (the verb route) and D2 `D-reading-list-4` (the archived query) in the spec's
+Design notes, each with its rationale and rejected alternative, and the change keeps
+`D1 → D-reading-list-3 in specs/reading-list.md` and the line for D2. The test that pins the
+verb route cites `D-reading-list-3` from its first line. That commit is `9f3c2a1`, and
+`openapi.json` moves in it too, because Lantern's `AGENTS.md` puts a route and its
+documentation in one commit (method #10). The page follows in `2b7e4d0`.
 
 The diff touches `src/api/books.js`, so it runs `/lantern-api-review 4c1d9e2..2b7e4d0`. The
 review reads the diff and the style doc, writes three rule lines and `Verdict: pass` into
@@ -72,20 +77,18 @@ task naming the requirement, fixes nothing, and commits. Verdict: fail. It names
    deploy `d_0433`, and cycle 2 `pass`.
 2. **Specs settled.** It reads `specs/reading-list.md` and confirms the requirement and its
    three scenarios are there, worded as the spec keeps them. The section holds no promise.
-3. **Decisions folded.** D1 becomes `D-reading-list-3` (the verb route) and D2 becomes
-   `D-reading-list-4` (the archived query), each with its rationale and the rejected
-   alternative, appended to Design notes. `grep -rn "archive-a-book"` finds one test comment
-   citing the change; it is repointed to `D-reading-list-3`.
+3. **Decisions folded.** Both decisions have been in Design notes since `9f3c2a1`; it reads
+   `D-reading-list-3` and `-4` there and finds nothing left to fold. `grep -rn
+   "archive-a-book"` finds no code citing the change.
 4. **Idea retired.** No idea file reads `adopted — changes/archive-a-book.md`; nothing to do.
 5. **Loop closed.** The commit message carries `Closes lantern#12`. No room is declared.
 
-Then `git rm changes/archive-a-book.md`, in the same commit as the spec edit, and push:
+Then `git rm changes/archive-a-book.md` and push. Every lasting thing it held is already in
+the spec, so the finishing commit is the delete:
 
 ```
-f06e4aa  reading-list: D-reading-list-3 and -4; archive-a-book finished
+f06e4aa  archive-a-book finished
 
- specs/reading-list.md        | 4 ++++
- src/api/books.test.js        | 2 +-
  changes/archive-a-book.md    | 52 ------------------------------
 ```
 

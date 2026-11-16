@@ -24,8 +24,9 @@ work itself.
 
 3. **Decisions and their rationale are kept, numbered, and cited from the place they
    govern.** A decision lives in its spec's Design notes under a stable id of the form
-   `D-<capability>-N`. Code, tests and gates cite that id. The rationale remains available
-   after the change file is deleted.
+   `D-<capability>-N`, from the commit that ships the code it governs. Code, tests and gates
+   cite that id. The rationale is in the spec while the change is open and after it is
+   deleted.
 
 4. **Write only what will be read again.** Every artifact names its reader: a future
    session, CI, or code. Ask "who reads this next month?" An artifact with no answer is not
@@ -33,8 +34,9 @@ work itself.
 
 5. **One change, one unit, deleted when done.** A change carries Why, Specs, Prior art,
    Decisions, Tasks, Surface review and Verification. Keep its scope small enough to finish.
-   Once every task is checked and verification passes, its requirements belong in the spec,
-   its decisions belong in the spec's Design notes, and the change is deleted.
+   Its requirements and decisions move into the spec as their code ships, so an open change
+   holds only what has not shipped. Once every task is checked and verification passes, the
+   change is deleted.
 
 6. **Evidence, not narrative.** A task line carries a commit SHA, a count, a dated live
    check, or a struck-through "not needed" naming the decision that removed the need. No logs
@@ -119,7 +121,7 @@ change (`MIGRATING.md`).
 
 ## Method declarations
 
-In `AGENTS.md`, a product adds `## Method declarations` and declares the four things the
+In `AGENTS.md`, a product adds `## Method declarations` and declares the five things the
 skills cannot know. An undeclared line means that step does not exist for the product.
 
 - **Principles:** the tier-1 documents beside this page. Their numbered principles are
@@ -134,6 +136,10 @@ skills cannot know. An undeclared line means that step does not exist for the pr
   covers, and the documents it judges against. kyspec-plan and kyspec-implement invoke it
   only when it is declared and the change touches those paths. The surface is what users
   touch: an API, a UI, a CLI, a published client, or its documentation.
+- **Verifier identities:** where a verify thread signs in as each kind of user the product
+  has, such as a member, an admin, or a fresh account on the free path. kyspec-verify signs in
+  with them. A kind with no identity yet is made by the thread that needs it and recorded
+  here, never waited on; undeclared, the first verify thread that needs one adds the line.
 
 ## A change
 
@@ -158,18 +164,32 @@ commit as the code that satisfies it (principle 1). At finish, this section cont
 promise the spec does not already keep. There are no delta-spec files.
 
 **Prior art.** Mandatory, and written before Decisions. List the principles the change
-touches by number, the `## Design notes` D-ids and requirements of nearby specs, and any idea
-on the topic. Mark each relevant item `keep` or `override` in one line. Restate every override
-in Decisions with its reason. A decision that silently contradicts prior art is a defect.
+touches by number, the `## Design notes` D-ids and requirements of nearby specs, the open
+changes whose Specs name the same specs, and any idea on the topic. Mark each relevant item
+`keep` or `override` in one line. Restate every override in Decisions with its reason; an
+override of an open change's decision is settled with that change. A decision that silently
+contradicts prior art is a defect.
 
 **Decisions.** Use `D1`, `D2`, and so on inside the change. Each states the decision, its
-reason, and the alternative it rejects. At finish, every decision that still governs the
-code becomes `D-<capability>-N` in the owning spec's Design notes.
+reason, and the alternative it rejects. A decision that governs code moves into the owning
+spec's Design notes as `D-<capability>-N` in the commit that ships that code (principle 3),
+and the change keeps one line, `D<n> → D-<capability>-N in <spec path>`. A decision that only
+governs the work, such as sequencing or a spike, stays in the change and goes with it.
 
 **Tasks.** A checklist with evidence on each line (principle 6): a commit SHA, a count, a
-dated live check, or a struck-through "not needed" naming the decision that removed the
-need. A task without evidence is open. For a public surface change, include the documentation
-and clients in the blast radius named by the product's `AGENTS.md`.
+dated live check, a struck-through "not needed" naming the decision that removed the need, or
+a struck-through "moved" naming where the task went. A task without evidence is open. For a
+public surface change, include the documentation and clients in the blast radius named by the
+product's `AGENTS.md`.
+
+A task blocked on something outside the work carries one marker,
+`- [ ] (waiting: <who> — <what unblocks it>) <task>`, where `<who>` is a person's name, a date
+`YYYY-MM-DD`, or `release`; the marker goes when the task is ticked, and the change's state is
+read from its tasks, never written. Missing access (a sign-in, an account, a grant, a role, a
+tool) is never a wait: the thread that meets it acquires it, and a person's wait names an act
+only that person can take. A task that serves no requirement under Specs and no decision is not
+the change's work: it is done as a plain commit, or struck `moved — ideas/<name>.md` (a question
+worth thinking about) or `moved — owner/repo#N` (a chore).
 
 **Surface review.** Required when the product declares a surface review and the diff touches
 its paths. The declared review skill reads the diff, using the declared documents as its
@@ -203,11 +223,15 @@ The verifier follows these rules:
   used by agents or developers, or the app for one used by people. Never read the diff.
 - **Use the released product.** Check production or the deployed branch. A live surface
   is verified live, never by a unit test alone.
+- **Sign in as the declared identities** ("Method declarations"). A scenario that needs a
+  kind of user with no identity yet makes one first and records it; it is never blocked for
+  want of one.
 - **Record observations.** Append a dated cycle to Verification. List its scope one
   requirement per line, record `pass`, `fail`, or `blocked` for each item with what was
   observed, and give a verdict.
 - **Send failures back to implementation.** A failure adds unchecked tasks for
-  kyspec-implement. The next release gets a new verification cycle.
+  kyspec-implement; an item blocked on a person, a date or a release adds its task with the
+  waiting marker. The next release gets a new verification cycle.
 - **Name what cannot be reached.** A scenario no user can reach by ordinary means, such as
   fault injection or a paid plan bought only for the test, is named out of reach and stays
   outside the verdict. Finish strikes it or moves it to an idea unless a test covers it.
@@ -236,14 +260,16 @@ unblock is out of reach, and goes the route above.
 
 kyspec-finish takes five steps before deleting the change:
 
-1. **It may finish:** every task is checked with evidence, and Verification holds a green CI
+1. **It may finish:** every task is checked with evidence (a moved task names where it went),
+   and Verification holds a green CI
    run, release evidence, and either a passing verify cycle or a skip line. Otherwise, stop
    and name what is missing.
 2. **Specs settled:** every intended requirement is in its main spec. Strike anything still
    unshipped with a reason, or move it out as a new idea. The Specs section holds no promise.
-3. **Decisions folded:** move decisions into the owning spec's `## Design notes` as
-   `D-<capability>-N`, using the next free N and keeping their rationale. Repoint every code
-   comment, test or doc that cites the change's path to the relevant id.
+3. **Decisions folded:** a decision whose code shipped is in its spec already (principle 3).
+   Move any decision that still governs the code and is not into the owning spec's
+   `## Design notes` as `D-<capability>-N`, using the next free N and keeping its rationale.
+   Repoint every code comment, test or doc that cites the change's path to the relevant id.
 4. **Idea retired:** move any lasting context into the spec's Purpose and delete the idea
    file.
 5. **Loop closed:** close the issues named by the change through the commit message, and
@@ -271,7 +297,7 @@ cites the section it enforces.
 
 | Section | Check |
 | --- | --- |
-| "A change" (one file or `<name>/<name>.md`; the seven sections, in order) | `check-layout.mjs` |
+| "A change" (one file or `<name>/<name>.md`; the seven sections, in order; the waiting marker's form) | `check-layout.mjs` |
 | "Finishing a change" (no archive directory, no date-prefixed change) | `check-layout.mjs` |
 | "Three tiers" (an idea's first line is its status) | `check-layout.mjs` |
 

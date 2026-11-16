@@ -14,7 +14,8 @@ an archive directory or a date-prefixed change. In a repository that nests by pr
 
 ## 1. Check it may
 
-Every task is checked, with evidence or a struck "not needed" naming its decision.
+Every task is checked, with evidence, a struck "not needed" naming its decision, or a struck
+"moved" naming the idea file or issue it went to, which exists.
 `## Verification` holds a green CI run for the pushed code, release evidence (or
 `Release: none — <reason>`), and either a verify cycle whose verdict is `pass` or
 `Verify: skipped — <reason>`. If anything is missing, stop: name it and the step that supplies
@@ -30,7 +31,9 @@ holding no promise the specs do not already keep.
 
 ## 3. Fold Decisions
 
-Each decision that still governs the code moves into the owning spec's `## Design notes` (added
+A decision whose code shipped is there already, behind its pointer line `D<n> → D-…` (method
+#3); confirm by reading the spec. Each other decision that still governs the code moves into
+the owning spec's `## Design notes` (added
 as the spec's last section when it has none) as `D-<capability>-N`, the next free N in that
 spec, with its rationale and the alternative it rejected. An override of prior art names the
 D-id, requirement or principle it amends. A decision that only governed the work (sequencing, a

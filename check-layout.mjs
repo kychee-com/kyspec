@@ -8,6 +8,9 @@
 //   - a change file whose H2 sections are not exactly the seven, in order
 //     (METHOD.md "A change")
 //   - a change directory without its <name>.md (METHOD.md "A change")
+//   - a waiting marker on a task under ## Tasks that is not
+//     `(waiting: <name | YYYY-MM-DD | release> — <what unblocks it>)`, that
+//     waits on access, or that stays on a ticked task (METHOD.md "A change")
 // Under ideas/ it refuses:
 //   - an idea whose first line is not `status: seed | explored | parked |
 //     rejected | adopted` (METHOD.md "Three tiers")
@@ -41,7 +44,53 @@ const RULE = Object.freeze({
   sections: `METHOD.md, A change: exactly these H2 sections, in order: ${CHANGE_SECTIONS.join(", ")}`,
   file: "METHOD.md, A change: a change is changes/<name>.md, or changes/<name>/<name>.md beside its attachments",
   status: `METHOD.md, Three tiers: an idea's first line is \`status: ${IDEA_STATUSES.join(" | ")}\``,
+  waiting:
+    "METHOD.md, A change: a blocked task is `- [ ] (waiting: <name | YYYY-MM-DD | release> — <what unblocks it>) <task>`; missing access is never a wait, and the marker goes when the task is ticked",
 });
+
+const PERSON = /^\p{L}[\p{L}\p{M}' .-]*$/u;
+
+/** Why one waiting marker (the text from "(waiting" on) breaks the form, or null. */
+function waitingMarkerProblem(marker, ticked) {
+  if (ticked) return "a ticked task still carries its waiting marker";
+  let depth = 0;
+  let close = -1;
+  for (let i = 0; i < marker.length && close < 0; i++) {
+    if (marker[i] === "(") depth++;
+    else if (marker[i] === ")" && --depth === 0) close = i;
+  }
+  if (close < 0) return "the waiting marker is never closed";
+  const form = /^\(waiting: (.*?) — (.+)\)$/s.exec(marker.slice(0, close + 1));
+  if (!form || !form[1].trim()) return `"${marker.slice(0, close + 1)}" is not the waiting marker's form`;
+  const who = form[1].trim();
+  if (/^access\b/i.test(who)) return "missing access is never a wait: the thread that meets it acquires it";
+  if (who === "release" || PERSON.test(who)) return null;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(who) ? new Date(`${who}T00:00:00Z`) : null;
+  if (date && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(who)) return null;
+  return `"${who}" is not a person's name, a date YYYY-MM-DD, or release`;
+}
+
+/** [line number, why] for each broken waiting marker under a change's ## Tasks. */
+export function waitingMarkerProblems(text) {
+  const problems = [];
+  let fence = null;
+  let inTasks = false;
+  text.split("\n").forEach((line, index) => {
+    const opener = /^\s*(`{3,}|~{3,})/.exec(line);
+    if (opener) {
+      if (!fence) fence = opener[1][0];
+      else if (opener[1][0] === fence) fence = null;
+      return;
+    }
+    if (fence) return;
+    const heading = /^##\s+(.+?)\s*#*\s*$/.exec(line);
+    if (heading) inTasks = heading[1] === "Tasks";
+    const task = inTasks && /^\s*[-*] \[([ xX])\]\s+(?:\d+(?:\.\d+)*\.?\s+)?(\(waiting\b.*)$/i.exec(line);
+    const why = task && waitingMarkerProblem(task[2], task[1] !== " ");
+    if (why) problems.push([index + 1, why]);
+  });
+  return problems;
+}
 
 /** The H2 headings of a markdown text, skipping fenced code blocks. */
 export function h2Headings(text) {
@@ -117,10 +166,12 @@ export function changeFileProblems(root = ".") {
   };
   collect(changes, "changes", 0);
   for (const file of files.sort()) {
-    const headings = h2Headings(readFileSync(join(root, file), "utf8"));
+    const text = readFileSync(join(root, file), "utf8");
+    const headings = h2Headings(text);
     if (headings.join("\n") !== CHANGE_SECTIONS.join("\n")) {
       problems.push(`${file} has H2 sections [${headings.join(", ")}]; ${RULE.sections}.`);
     }
+    for (const [line, why] of waitingMarkerProblems(text)) problems.push(`${file}:${line} ${why}; ${RULE.waiting}.`);
   }
   return problems;
 }

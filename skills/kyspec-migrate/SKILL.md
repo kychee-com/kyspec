@@ -35,8 +35,9 @@ entire before writing anything: the specs, every active change, every archived c
    sections in this order: Why (from the proposal), Specs (the delta's requirements in the
    spec's own form and present tense; a MODIFIED block as the amended text, a REMOVED block as
    a struck requirement with its reason), Prior art (the design's context, each line `keep` or
-   `override`), Decisions (`D1`, `D2`, … from the design), Tasks (from `tasks.md`, evidence on
-   every done line or the line reopened), Surface review (`N/A — <reason>`, or the planning
+   `override`), Decisions (`D1`, `D2`, … from the design; one whose code already shipped moves
+   to its spec as in step 3 and leaves `D<n> → D-<capability>-N in <spec path>`), Tasks (from
+   `tasks.md`, evidence on every done line or the line reopened), Surface review (`N/A — <reason>`, or the planning
    note when `AGENTS.md` declares one and the change touches its paths), Verification
    (`Pending.`). Attachments make it `changes/<name>/<name>.md`. Explore notes worth keeping
    become `ideas/<name>.md` with a `status:` first line.

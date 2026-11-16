@@ -11,6 +11,8 @@ method; the five `kyspec-*` skills and the two Lantern skills are under `.claude
   deploy id and a live check).
 - **Surface review:** `/lantern-api-review`, for a diff touching `src/api/**` or
   `openapi.json`, judged against `docs/api-style.md`.
+- **Verifier identities:** a reader is anyone with https://lantern.example and the public
+  docs; Lantern has no sign-in yet.
 
 No coordination room: one session works this repository at a time.
 

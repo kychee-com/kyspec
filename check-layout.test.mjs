@@ -93,6 +93,44 @@ describe("changeFileProblems", () => {
   });
 });
 
+describe("waiting markers", () => {
+  const withTasks = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  const problemsFor = (lines) => changeFileProblems(tree({ "changes/foo.md": withTasks(lines) }));
+
+  it("accepts a person, a date and a release, after a task number, with dashes and parentheses in the what", () => {
+    assert.deepEqual(problemsFor([
+      "- [ ] (waiting: Dana — the store attestation (her account)) Submit the listing.",
+      "- [ ] 4.2 (waiting: 2026-12-01 — the 14-day ledger — then contact owners) Review the ledger.",
+      "- [ ] (waiting: release — the next CLI publish) Release the template text.",
+      "- [ ] (waiting: Mary O'Neil — the domain transfer) Point the domain.",
+      "- [x] Done with evidence, abc1234.",
+    ]), []);
+  });
+  it("reads only the Tasks section, outside fenced blocks", () => {
+    const verification = change
+      .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] (waiting: access — not a task here)\n")
+      .replace("## Tasks\n\ntext\n", "## Tasks\n\n```md\n- [ ] (waiting: access — an example)\n```\n");
+    assert.deepEqual(changeFileProblems(tree({ "changes/foo.md": verification })), []);
+  });
+  it("refuses access, a malformed marker, an invalid date, and a ticked task that kept its marker", () => {
+    const problems = problemsFor([
+      "- [ ] (waiting: access — a member sign-in) Verify the news page.",
+      "- [ ] (waiting: Access to the org — membership) Read the receiver.",
+      "- [ ] (waiting: Dana) No what.",
+      "- [ ] (waiting on Dana — the click) Not the form.",
+      "- [ ] (waiting: 2026-13-40 — a date that is none) Wait.",
+      "- [ ] (waiting: dana@example.com — an address, not a name) Wait.",
+      "- [ ] (waiting: Dana — never closed",
+      "- [x] (waiting: release — the publish) Ticked, marker left on.",
+    ]);
+    assert.equal(problems.length, 8);
+    for (const problem of problems) assert.match(problem, /^changes\/foo\.md:\d+ .*; METHOD\.md, A change: a blocked task is/);
+    assert.match(problems[0], /missing access is never a wait/);
+    assert.match(problems[1], /missing access is never a wait/);
+    assert.match(problems[7], /ticked/);
+  });
+});
+
 describe("ideaStatusProblems", () => {
   it("accepts every status, a reason after a dash, and product nesting", () => {
     const ok = tree({

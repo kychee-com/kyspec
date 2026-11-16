@@ -72,3 +72,12 @@ status and notes it had. There is no `DELETE /books/:id` (principles #2).
   three columns and the export names three states; a fourth state is a change to both, so it
   must arrive as a change, not as a value a client invents. Rejected: a free-form status (each
   client would invent its own, and the columns would stop meaning anything).
+- **D-reading-list-3. Archive is a verb route, `POST /books/:id/archive` with
+  `POST /books/:id/unarchive`, not a fourth status and not a delete.** A status would leak
+  archived books into every status filter (D-reading-list-2); a delete breaks principles #2.
+  Rejected: `PATCH /books/:id { archived: true }` (a flag every list view would have to know
+  about).
+- **D-reading-list-4. Archived books are listed by `GET /books?archived=true`, never mixed into
+  the default list.** One list route and one filter, so the page and the export share the
+  query. Rejected: a separate `/archive` collection (a second list route to keep in step with
+  the first).

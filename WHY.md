@@ -69,7 +69,9 @@ That check takes another session and access to a released product. We consider t
 
 A proposal has a short useful life. The decisions it contains may govern the system for years.
 
-Before a Kyspec change is deleted, every decision that still governs the code moves into the owning spec's Design notes. It receives a stable ID such as `D-auth-4` and keeps its rationale and rejected alternative. Code, tests, and documentation can cite that ID.
+In the commit that ships the code a decision governs, the decision moves into the owning spec's Design notes, as its requirement does. It receives a stable ID such as `D-auth-4` and keeps its rationale and rejected alternative. Code, tests, and documentation cite that ID from their first line. A change that waits weeks on its last task, a person's decision, a date or a release, holds nothing a later session needs: the specs already carry everything that shipped, and the change holds only what has not.
+
+The same reasoning keeps the open change small and legible. A blocked task names what it waits on in one form, `(waiting: <who> — <what>)`, and the form has no place for access: an agent that lacks a sign-in or a grant gets it, and a product declares the identities its verifier signs in with. Work that serves no requirement or decision leaves as an idea or an issue instead of holding the change open.
 
 The next plan must search the relevant principles, requirements, decision IDs, and ideas before making its own decisions. It marks relevant prior art `keep` or `override`, and explains each override.
 

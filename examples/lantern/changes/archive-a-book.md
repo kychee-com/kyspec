@@ -24,13 +24,13 @@ status it had.
 
 ## Decisions
 
-- **D1: Archive is a verb route, `POST /books/:id/archive` with `POST /books/:id/unarchive`, not a fourth status and not a delete.** A status would leak archived books into every status filter (D-reading-list-2); a delete breaks principles #2. Rejected: `PATCH /books/:id { archived: true }` (a flag every list view would have to know about).
-- **D2: Archived books are listed by `GET /books?archived=true`, never mixed into the default list.** One list route and one filter, so the page and the export share the query. Rejected: a separate `/archive` collection (a second list route to keep in step with the first).
+- D1 → D-reading-list-3 in specs/reading-list.md (archive is a verb route)
+- D2 → D-reading-list-4 in specs/reading-list.md (archived books are a query filter)
 
 ## Tasks
 
 - [x] Tests: archive removes from the list, keeps notes, is idempotent; unarchive restores the book — 4 tests, 9f3c2a1
-- [x] `POST /books/:id/archive`, `POST /books/:id/unarchive`, `GET /books?archived=true`, with `openapi.json` for both routes and the `archived` query; the requirement moved into `specs/reading-list.md` in the same commit — 9f3c2a1
+- [x] `POST /books/:id/archive`, `POST /books/:id/unarchive`, `GET /books?archived=true`, with `openapi.json` for both routes and the `archived` query; the requirement, D1 and D2 moved into `specs/reading-list.md` in the same commit — 9f3c2a1
 - [x] The page: archive on every book, an Archived view with unarchive — 2b7e4d0
 - [ ] Verify cycle 1: unarchive returned the book with status `to-read`; it was `reading` when archived (specs/reading-list.md "Unarchiving") — observed on https://lantern.example, 2026-10-20
 
