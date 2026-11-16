@@ -27,7 +27,8 @@ Four files, three lines, run from the repository root:
    ideas, including the rule against archived or date-prefixed changes.
 4. Add a `## Method declarations` section to AGENTS.md naming what the
    skills cannot know: the principles document, the release skills, the
-   surface review, the coordination room. Omit a line that does not apply;
+   surface review, the coordination room, the verifier identities. Omit a
+   line that does not apply;
    METHOD.md "Method declarations" defines each. Example:
 
     ## Method declarations
@@ -36,6 +37,7 @@ Four files, three lines, run from the repository root:
     - **Release:** /deploy for the API and site; /publish for the npm package.
     - **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
     - **Coordination room:** the channel and procedure for claiming an area and announcing completion.
+    - **Verifier identities:** a test member and a test admin on the staging site, and how a verify thread signs in as each.
 
 Then start the work: invoke kyspec-brainstorm for an idea, or implement a
 named issue with Kyspec. Verification of a changed user-facing flow runs in

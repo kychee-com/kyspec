@@ -103,8 +103,20 @@ describe("waiting markers", () => {
       "- [ ] 4.2 (waiting: 2026-12-01 — the 14-day ledger — then contact owners) Review the ledger.",
       "- [ ] (waiting: release — the next CLI publish) Release the template text.",
       "- [ ] (waiting: Mary O'Neil — the domain transfer) Point the domain.",
+      "- [ ] 4c.3 (waiting: Tal — the re-issue named in 10.2) Re-issue the key.",
+      "- [ ] Make the gate refuse `(waiting: access — x)` and `- [x] y (waiting: Dana — z)` quoted as examples.",
       "- [x] Done with evidence, abc1234.",
     ]), []);
+  });
+  it("refuses a marker anywhere but the start of the task, open or ticked", () => {
+    const problems = problemsFor([
+      "- [ ] Check the export as a member (waiting: access — a member sign-in).",
+      "- [x] Publish the export to the store (waiting: Dana — the store attestation).",
+      "- [ ] 2.1 Ship it (Waiting on release).",
+      "- [ ] (waiting: Dana — the attestation) then (waiting: release — the publish) Two markers.",
+    ]);
+    assert.equal(problems.length, 4);
+    for (const problem of problems) assert.match(problem, /a waiting marker opens the task.*; METHOD\.md, A change/);
   });
   it("reads only the Tasks section, outside fenced blocks", () => {
     const verification = change

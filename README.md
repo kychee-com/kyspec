@@ -98,6 +98,7 @@ Add `## Method declarations` to `AGENTS.md`. Name the documents and skills your 
 - **Release:** /deploy for the API and site; /publish for the npm package.
 - **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
 - **Coordination room:** the channel and procedure for claiming an area and announcing completion.
+- **Verifier identities:** a test member and a test admin on the staging site, and how a verify thread signs in as each.
 ~~~
 
 These are example declarations, not bundled release or review skills. Omit declarations that do not apply; the method defines their behavior in [Method declarations](METHOD.md#method-declarations).

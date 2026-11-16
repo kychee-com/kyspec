@@ -10,7 +10,8 @@
 //   - a change directory without its <name>.md (METHOD.md "A change")
 //   - a waiting marker on a task under ## Tasks that is not
 //     `(waiting: <name | YYYY-MM-DD | release> — <what unblocks it>)`, that
-//     waits on access, or that stays on a ticked task (METHOD.md "A change")
+//     waits on access, that sits anywhere but the start of the task, or that
+//     stays on a ticked task (METHOD.md "A change")
 // Under ideas/ it refuses:
 //   - an idea whose first line is not `status: seed | explored | parked |
 //     rejected | adopted` (METHOD.md "Three tiers")
@@ -70,6 +71,9 @@ function waitingMarkerProblem(marker, ticked) {
   return `"${who}" is not a person's name, a date YYYY-MM-DD, or release`;
 }
 
+// A task line: its checkbox, an optional task number (`3`, `4.2`, `4c.3`), then the task.
+const TASK_LINE = /^\s*[-*] \[([ xX])\]\s+(?:[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*\.?\s+)?(.*)$/;
+
 /** [line number, why] for each broken waiting marker under a change's ## Tasks. */
 export function waitingMarkerProblems(text) {
   const problems = [];
@@ -85,9 +89,15 @@ export function waitingMarkerProblems(text) {
     if (fence) return;
     const heading = /^##\s+(.+?)\s*#*\s*$/.exec(line);
     if (heading) inTasks = heading[1] === "Tasks";
-    const task = inTasks && /^\s*[-*] \[([ xX])\]\s+(?:\d+(?:\.\d+)*\.?\s+)?(\(waiting\b.*)$/i.exec(line);
-    const why = task && waitingMarkerProblem(task[2], task[1] !== " ");
-    if (why) problems.push([index + 1, why]);
+    // Inline code quotes a marker as an example; it is not one.
+    const task = inTasks && TASK_LINE.exec(line.replace(/`[^`]*`/g, "``"));
+    if (!task) return;
+    const rest = task[2];
+    const opening = /^\(waiting\b/i.test(rest) && waitingMarkerProblem(rest, task[1] !== " ");
+    if (opening) problems.push([index + 1, opening]);
+    if ([...rest.matchAll(/\(waiting\b/gi)].some((match) => match.index > 0)) {
+      problems.push([index + 1, "a waiting marker opens the task (after its number), never inside its text"]);
+    }
   });
   return problems;
 }
