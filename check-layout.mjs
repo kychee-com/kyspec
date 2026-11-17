@@ -49,10 +49,14 @@ const RULE = Object.freeze({
     "METHOD.md, A change: a blocked task opens with `(waiting: <name> [on <act>] | <YYYY-MM-DD> | release — <what unblocks it>)` or `(after <task number> — <what>)`; missing access is never a wait, and the marker goes when the task is ticked",
   ideaWaiting:
     "METHOD.md, Three tiers: an open question only a person can answer is a list item that opens with `(waiting: <name> [on <act>] — <question>)`; missing access is never a wait",
+  text: "METHOD.md, A change: a change or an idea is plain text, its lines ending in LF or CRLF, so a grep reads every line",
 });
 
-const PERSON = /^\p{Lu}[\p{L}\p{M}' .-]*$/u;
-const LOWERCASE_NAME = /^\p{Ll}[\p{L}\p{M}' .-]*$/u;
+// A person's name: one or more words, each a capital letter then letters, marks, apostrophes or
+// hyphens, one plain space between them ("Tal", "Mary Ann", "O'Brien").
+const PERSON = /^\p{Lu}[\p{L}\p{M}'-]*(?: \p{Lu}[\p{L}\p{M}'-]*)*$/u;
+// Characters a marker's opening may not hold: any space but U+0020, the invisible ones, a backtick.
+const ODD_SPACE = /[^\S ]|[​-‍⁠﻿`]/u;
 const ACT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const TASK_REF = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*$/;
 const NO_ACCESS = "missing access is never a wait: the thread that meets it acquires it";
@@ -67,38 +71,68 @@ function markerText(marker) {
   return null;
 }
 
-/** Why a waiting marker's <who> is wrong: a person (on an act), a date, or release. */
-function whoProblem(who) {
+/** Why a waiting marker's <who> is wrong: a person (on an act), a date, or release; in an idea, a person only. */
+function whoProblem(who, idea) {
+  if (/ on /i.test(who) && !/ on /.test(who)) return `"${who}": " on " before an act is written in lowercase`;
   const act = / on /.test(who) ? /^(.+?) on (.+)$/.exec(who) : null;
-  const name = act ? act[1].trim() : who;
+  const name = act ? act[1] : who;
   if (/\baccess\b/i.test(name)) return NO_ACCESS;
   if (act) {
-    if (!PERSON.test(name) || /^\d/.test(name) || name === "release") return `an act follows a person's name, never "${name}"`;
-    return ACT.test(act[2].trim()) ? null : `"${act[2].trim()}" is not an act id: lowercase words joined by hyphens`;
+    if (!PERSON.test(name) || name === "release") return `an act follows a person's name, never "${name}"`;
+    return ACT.test(act[2]) ? null : `"${act[2]}" is not an act id: lowercase words joined by hyphens`;
   }
-  if (who === "release" || PERSON.test(who)) return null;
-  if (LOWERCASE_NAME.test(who)) return `"${who}": a person's name starts with a capital letter, as the report matches names exactly`;
+  if (PERSON.test(who)) return null;
+  if (who === "release") return idea ? "an idea's question waits on a person, by name" : null;
+  if (/^\p{L}/u.test(who)) {
+    return `"${who}": a person's name is one person's, each word starting with a capital letter, as the report matches names exactly`;
+  }
+  if (idea) return `"${who}": an idea's question waits on a person, by name`;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(who) ? new Date(`${who}T00:00:00Z`) : null;
   if (date && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(who)) return null;
   return `"${who}" is not a person's name, a date YYYY-MM-DD, or release`;
 }
 
-/** Why one marker (the text from "(waiting" or "(after" on) breaks its form, or null. */
-function waitingMarkerProblem(marker, ticked) {
+/**
+ * Why one marker breaks its form, or null. `raw` is the text from "(waiting" or "(after" on as
+ * written; `marker` is the same with inline code replaced, for finding where it closes.
+ */
+function waitingMarkerProblem(marker, ticked, { raw = marker, idea = false } = {}) {
   if (ticked) return "a ticked task still carries its waiting marker";
   const whole = markerText(marker);
   if (!whole) return "the waiting marker is never closed";
-  const head = whole.slice(0, Math.max(0, whole.indexOf(" — ")));
-  if (/ {2}/.test(head) || / $/.test(head)) {
-    return `"${whole}" has more than one space between its words; a marker's opening is spelled one way, so a grep finds every one`;
+  const dash = raw.indexOf(" — ");
+  const head = dash < 0 ? "" : raw.slice(0, dash);
+  if (ODD_SPACE.test(head) || / {2}/.test(head) || / $/.test(head)) {
+    return `"${head} — …" holds something other than one space between its words (a tab, a doubled or invisible space, code); a marker's opening is spelled one way, so a grep finds every one`;
   }
   if (/^\(after\b/i.test(whole)) {
     const after = /^\(after (.*?) — (.+)\)$/s.exec(whole);
-    return after && TASK_REF.test(after[1].trim()) ? null : `"${whole}" is not \`(after <task number> — <what>)\``;
+    return after && TASK_REF.test(after[1]) ? null : `"${whole}" is not \`(after <task number> — <what>)\``;
   }
   const form = /^\(waiting: (.*?) — (.+)\)$/s.exec(whole);
-  if (!form || !form[1].trim()) return `"${whole}" is not the waiting marker's form`;
-  return whoProblem(form[1].trim());
+  if (!form || !form[1]) return `"${whole}" is not the waiting marker's form`;
+  return whoProblem(form[1], idea);
+}
+
+// A fenced code block opens at a line of three or more backticks (with no backtick after them)
+// or tildes, after any indentation, and closes at a line of at least as many of the same
+// character with nothing after them but spaces. Returns the new fence, or undefined for a line
+// that neither opens nor closes one.
+function fenceStep(line, fence) {
+  const run = /^[ \t]*(`{3,}|~{3,})(.*)$/.exec(line);
+  if (!run) return undefined;
+  if (!fence) return run[1][0] === "`" && run[2].includes("`") ? undefined : { char: run[1][0], length: run[1].length };
+  return run[1][0] === fence.char && run[1].length >= fence.length && /^[ \t]*$/.test(run[2]) ? null : undefined;
+}
+
+/** [line number, why] for what hides a line from grep: a lone carriage return, a NUL byte. */
+export function plainTextProblems(text) {
+  const problems = [];
+  text.split("\n").forEach((line, index) => {
+    if (/\r(?!$)/.test(line)) problems.push([index + 1, "a lone carriage return (CR without LF) ends a line grep does not see"]);
+    if (line.includes("\0")) problems.push([index + 1, "a NUL byte makes grep read the file as binary"]);
+  });
+  return problems;
 }
 
 // A list item of any kind (`-`, `*`, `+`, `1.`, `1)`); a task is one with a checkbox,
@@ -126,10 +160,9 @@ function tasksSectionEntries(text) {
   let inTasks = false;
   let task = null;
   text.split(/\r\n?|\n/).forEach((line, index) => {
-    const opener = /^\s*(`{3,}|~{3,})/.exec(line);
-    if (opener) {
-      if (!fence) fence = opener[1][0];
-      else if (opener[1][0] === fence) fence = null;
+    const step = fenceStep(line, fence);
+    if (step !== undefined) {
+      fence = step;
       task = null;
       return;
     }
@@ -164,11 +197,15 @@ export function waitingMarkerProblems(text) {
       continue;
     }
     const rest = body.replace(TASK_NUMBER, "");
+    const raw = entry.text.replace(TASK_NUMBER, "");
     const opens = /^\((?:waiting|after)\b/i.test(rest);
     let opening = null;
     if (NEAR_MISS.test(rest)) opening = `"${rest.slice(0, 40)}…" is not the waiting marker's form`;
-    else if (opens && !entry.ticked && !CANON_TASK.test(entry.first)) opening = FIRST_LINE;
-    else if (opens) opening = waitingMarkerProblem(rest, entry.ticked);
+    else if (opens) {
+      // The form first, then where it sits: a misspelt opening is named as misspelt.
+      opening = waitingMarkerProblem(rest, entry.ticked, { raw });
+      if (!opening && !CANON_TASK.test(entry.first)) opening = FIRST_LINE;
+    }
     if (opening) problems.push([entry.line, opening]);
     if ([...rest.matchAll(/\(waiting\b/gi)].some((match) => match.index > 0)) {
       problems.push([entry.line, "a waiting marker opens the task (after its number), never inside its text"]);
@@ -182,10 +219,9 @@ export function h2Headings(text) {
   const headings = [];
   let fence = null;
   for (const line of text.split(/\r\n?|\n/)) {
-    const opener = /^\s*(`{3,}|~{3,})/.exec(line);
-    if (opener) {
-      if (!fence) fence = opener[1][0];
-      else if (opener[1][0] === fence) fence = null;
+    const step = fenceStep(line, fence);
+    if (step !== undefined) {
+      fence = step;
       continue;
     }
     const heading = fence ? null : /^##\s+(.+?)\s*#*\s*$/.exec(line);
@@ -208,10 +244,9 @@ function ideaItems(text) {
   let fence = null;
   let item = null;
   text.split(/\r\n?|\n/).forEach((line, index) => {
-    const opener = /^\s*(`{3,}|~{3,})/.exec(line);
-    if (opener) {
-      if (!fence) fence = opener[1][0];
-      else if (opener[1][0] === fence) fence = null;
+    const step = fenceStep(line, fence);
+    if (step !== undefined) {
+      fence = step;
       item = null;
       return;
     }
@@ -239,8 +274,10 @@ export function ideaWaitingProblems(text) {
     if (NEAR_MISS.test(rest)) why = `"${rest.slice(0, 40)}…" is not the waiting marker's form`;
     else if (!/^\(waiting\b/i.test(rest)) continue;
     else if (item.box) why = "an idea's waiting question is a plain list item, no checkbox";
-    else if (!CANON_IDEA.test(item.first)) why = FIRST_LINE;
-    else why = waitingMarkerProblem(rest, false);
+    else {
+      why = waitingMarkerProblem(rest, false, { raw: item.text, idea: true });
+      if (!why && !CANON_IDEA.test(item.first)) why = FIRST_LINE;
+    }
     if (why) problems.push([item.line, why]);
   }
   return problems;
@@ -300,6 +337,7 @@ export function changeFileProblems(root = ".") {
     if (headings.join("\n") !== CHANGE_SECTIONS.join("\n")) {
       problems.push(`${file} has H2 sections [${headings.join(", ")}]; ${RULE.sections}.`);
     }
+    for (const [line, why] of plainTextProblems(text)) problems.push(`${file}:${line} ${why}; ${RULE.text}.`);
     for (const [line, why] of waitingMarkerProblems(text)) problems.push(`${file}:${line} ${why}; ${RULE.waiting}.`);
   }
   return problems;
@@ -324,6 +362,7 @@ export function ideaStatusProblems(root = ".") {
       if (!status || !IDEA_STATUSES.includes(/^[a-z]*/.exec(status[1])[0])) {
         problems.push(`${path} starts "${first.trim()}"; ${RULE.status}.`);
       }
+      for (const [line, why] of plainTextProblems(text)) problems.push(`${path}:${line} ${why}; ${RULE.text}.`);
       for (const [line, why] of ideaWaitingProblems(text)) problems.push(`${path}:${line} ${why}; ${RULE.ideaWaiting}.`);
     }
   };

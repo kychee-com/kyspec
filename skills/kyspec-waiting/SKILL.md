@@ -19,10 +19,15 @@ nests by product (method "Products"), every path here gains its `<product>/` seg
    report.
 2. **Find every wait.** The layout gate allows a marker only where it opens an open task's first
    line (after its number) in a change's `## Tasks`, or opens a plain list item in an idea, and
-   only in its one spelling, its opening on that first line after plain spaces, so the greps
-   below find every one. Drop what grep can also return that is no marker: a line inside a
-   fenced code block, and, in a change, a line outside `## Tasks`. Read each hit in its file,
-   with the lines its task wraps onto, for the whole `<what>`.
+   only in its one spelling (method "A change"), its opening on that first line after plain
+   spaces, so the greps below find every one. Drop what grep can also return that is no marker:
+   a hit in a file that is neither a change's own file (`changes/<name>.md`,
+   `changes/<name>/<name>.md`) nor an idea (`ideas/<name>.md`), such as an attachment beside a
+   change or a name not ending `.md`; a line inside a fenced code block, which opens at a line
+   of three or more backticks (none after them) or tildes, after any indentation, and closes at
+   a line of at least as many of the same, with nothing after them but spaces; and, in a change,
+   a line outside `## Tasks`. Read each hit in its file, with the lines its task wraps onto, for
+   the whole `<what>`. A name is matched as written: a wait on `Dana` is Dana's.
 3. **Follow what they hold.** In each change with a hit, a task that opens with
    `(after <n> — …)` waits on task `<n>`, and so on whatever `<n>` waits on: list it under that
    act too.

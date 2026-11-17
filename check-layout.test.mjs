@@ -309,6 +309,65 @@ describe("waits in ideas", () => {
   });
 });
 
+describe("what the gate accepts, a grep finds", () => {
+  const withTasks = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  const problemsFor = (lines) => changeFileProblems(tree({ "changes/foo.md": withTasks(lines) }));
+  const idea = (lines) => ideaStatusProblems(tree({ "ideas/a.md": `status: seed\n\n${lines.join("\n")}\n` }));
+  it("refuses a tab, an invisible or other space, or code in a marker's opening", () => {
+    const lines = [
+      "- [ ] (waiting: \tDana on phone — x) A.",
+      "- [ ] (waiting: Dana\t — x) B.",
+      "- [ ] (waiting: Dana on phone\t — x) C.",
+      "- [ ] (waiting: Dana　 — x) D.",
+      "- [ ] (waiting: Dana﻿ — x) E.",
+      "- [ ] (waiting: Dana on phone — x) F.",
+      "- [ ] (waiting: 2026-11-10\t — x) G.",
+      "- [ ] (waiting: Dana `on phone` — x) H.",
+      "- [ ] (after 2 — x) I.",
+    ];
+    const problems = problemsFor(lines);
+    assert.equal(problems.length, lines.length);
+    for (const problem of problems) assert.match(problem, /one space between its words/);
+    assert.equal(idea(["- (waiting: \tDana — x)", "- (waiting: Dana — x)"]).length, 2);
+  });
+  it("refuses a lone carriage return and a NUL byte, and keeps CRLF", () => {
+    const lone = changeFileProblems(tree({ "changes/foo.md": withTasks(["- [ ] A.\r- [ ] (waiting: access — x) B."]) }));
+    assert.ok(lone.some((p) => /lone carriage return/.test(p)));
+    const nul = changeFileProblems(tree({ "changes/foo.md": withTasks(["- [ ] A.\0"]) }));
+    assert.ok(nul.some((p) => /NUL byte/.test(p)));
+    assert.ok(ideaStatusProblems(tree({ "ideas/a.md": "status: seed\r- (waiting: access — x)\n" })).some((p) => /lone carriage return/.test(p)));
+    assert.deepEqual(changeFileProblems(tree({ "changes/foo.md": withTasks(["- [ ] (waiting: Dana — x) A."]).replace(/\n/g, "\r\n") })), []);
+  });
+  it("reads fences as the skill defines them", () => {
+    // A line with an info string never closes a fence, so the marker after the real close is read.
+    assert.equal(problemsFor(["```", "a", "```js", "- [ ] (waiting: Dana — x) inside.", "```", "- [ ] (waiting: access — x) A."]).length, 1);
+    // Backticks after the run: inline code, not a fence.
+    assert.equal(problemsFor(["```inline``` here", "- [ ] (waiting: access — x) A."]).length, 1);
+    // A shorter run does not close a longer fence.
+    assert.deepEqual(problemsFor(["````", "```", "- [ ] (waiting: access — x) quoted.", "````"]), []);
+    assert.equal(problemsFor(["````", "```", "````", "- [ ] (waiting: access — x) A."]).length, 1);
+    // Any indentation opens one, as the skill says.
+    assert.deepEqual(problemsFor(["    ```", "- [ ] (waiting: access — x) quoted.", "    ```"]), []);
+  });
+  it("takes a name as one person's, capitalised words, and \" on \" in lowercase", () => {
+    for (const who of ["Dana via phone", "Dana and Sam", "Dana.", "Dana's team", "Tal's father and mother"]) {
+      assert.match(problemsFor([`- [ ] (waiting: ${who} — x) A.`])[0], /one person's, each word starting with a capital letter/, who);
+    }
+    assert.match(problemsFor(["- [ ] (waiting: Dana On phone — x) A."])[0], /written in lowercase/);
+    assert.deepEqual(problemsFor(["- [ ] (waiting: Mary Ann — x) A.", "- [ ] (waiting: O'Brien on phone — x) B.", "- [ ] (waiting: DANA — x) C."]), []);
+  });
+  it("names a misspelt opening as misspelt, before where it sits", () => {
+    assert.match(problemsFor(["- [ ] (after — x) A."])[0], /is not `\(after <task number> — <what>\)`/);
+    assert.match(problemsFor(["- [ ] (waiting: Dana on Phone Check — x) A."])[0], /is not an act id/);
+  });
+  it("lets an idea's question wait on a person only", () => {
+    for (const marker of ["(waiting: 2026-11-10 — x)", "(waiting: release — x)"]) {
+      assert.match(idea([`- ${marker}`])[0], /waits on a person/, marker);
+    }
+    assert.deepEqual(idea(["- (waiting: Dana on phone — x)"]), []);
+  });
+});
+
 describe("ideaStatusProblems", () => {
   it("accepts every status, a reason after a dash, and product nesting", () => {
     const ok = tree({
