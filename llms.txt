@@ -9,10 +9,11 @@ https://github.com/kychee-com/kyspec (MIT). Five short skills, one method
 
 ## Install the kyspec.com skills
 
-Two files and six skills, three lines, run from the repository root:
+Two files and six skills, four lines, run from the repository root:
 
     git clone https://github.com/kychee-com/kyspec /tmp/kyspec
     cp /tmp/kyspec/METHOD.md /tmp/kyspec/check-layout.mjs .
+    mkdir -p .claude/skills
     cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish,waiting} .claude/skills/
 
 1. METHOD.md goes to the repository root. It is the method the skills cite.

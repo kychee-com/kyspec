@@ -52,11 +52,13 @@ const RULE = Object.freeze({
   text: "METHOD.md, A change: a change or an idea is plain text, its lines ending in LF or CRLF, so a grep reads every line",
 });
 
-// A person's name: one or more words, each a capital letter then letters, marks, apostrophes or
-// hyphens, one plain space between them ("Tal", "Mary Ann", "O'Brien").
-const PERSON = /^\p{Lu}[\p{L}\p{M}'-]*(?: \p{Lu}[\p{L}\p{M}'-]*)*$/u;
-// Characters a marker's opening may not hold: any space but U+0020, the invisible ones, a backtick.
-const ODD_SPACE = /[^\S ]|[​-‍⁠﻿`]/u;
+// A person's name, as a grep matches it byte for byte: one or more words of ASCII letters, each
+// starting with a capital, an apostrophe or hyphen inside a word, one space between them
+// ("Tal", "Mary Ann", "O'Brien").
+const PERSON = /^[A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*)*$/;
+// A marker's opening holds printable ASCII only, and no backtick: no tab, no other or invisible
+// space, no character a reader sees and a grep does not.
+const ODD_SPACE = /[^\x20-\x7E]|`/;
 const ACT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const TASK_REF = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*$/;
 const NO_ACCESS = "missing access is never a wait: the thread that meets it acquires it";
@@ -84,7 +86,7 @@ function whoProblem(who, idea) {
   if (PERSON.test(who)) return null;
   if (who === "release") return idea ? "an idea's question waits on a person, by name" : null;
   if (/^\p{L}/u.test(who)) {
-    return `"${who}": a person's name is one person's, each word starting with a capital letter, as the report matches names exactly`;
+    return `"${who}": a person's name is one person's, in ASCII letters, each word starting with a capital letter, as the report matches names byte for byte`;
   }
   if (idea) return `"${who}": an idea's question waits on a person, by name`;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(who) ? new Date(`${who}T00:00:00Z`) : null;
@@ -103,7 +105,7 @@ function waitingMarkerProblem(marker, ticked, { raw = marker, idea = false } = {
   const dash = raw.indexOf(" — ");
   const head = dash < 0 ? "" : raw.slice(0, dash);
   if (ODD_SPACE.test(head) || / {2}/.test(head) || / $/.test(head)) {
-    return `"${head} — …" holds something other than one space between its words (a tab, a doubled or invisible space, code); a marker's opening is spelled one way, so a grep finds every one`;
+    return `"${head} — \u2026" holds something other than printable ASCII with one space between its words (a tab, a doubled, other or invisible space, a letter outside ASCII, code); a marker's opening is spelled one way, so a grep finds every one`;
   }
   if (/^\(after\b/i.test(whole)) {
     const after = /^\(after (.*?) — (.+)\)$/s.exec(whole);
@@ -125,13 +127,49 @@ function fenceStep(line, fence) {
   return run[1][0] === fence.char && run[1].length >= fence.length && /^[ \t]*$/.test(run[2]) ? null : undefined;
 }
 
-/** [line number, why] for what hides a line from grep: a lone carriage return, a NUL byte. */
+/**
+ * [line number, why] for what makes a reader and grep see different lines: a line break other
+ * than LF or CRLF (a lone CR, U+0085, U+2028, U+2029, a form feed or vertical tab), or a NUL byte.
+ */
 export function plainTextProblems(text) {
   const problems = [];
   text.split("\n").forEach((line, index) => {
-    if (/\r(?!$)/.test(line)) problems.push([index + 1, "a lone carriage return (CR without LF) ends a line grep does not see"]);
+    if (/\r(?!$)|[\u0085\u2028\u2029\f\v]/.test(line)) {
+      problems.push([index + 1, "a line break other than LF or CRLF (a lone CR, U+0085, U+2028, U+2029, a form feed or vertical tab) splits a line where grep does not"]);
+    }
     if (line.includes("\0")) problems.push([index + 1, "a NUL byte makes grep read the file as binary"]);
   });
+  return problems;
+}
+
+// What the kyspec-waiting greps return, read wider than any locale's [[:space:]]: a task's or an
+// idea's opening. A line under changes/ or ideas/ that matches is a marker the gate reads, or it
+// is refused, so every grep hit is a wait.
+const GREP_SPACE = "[\\s\\u0085\\u180e\\u200b]";
+const GREP_TASK = new RegExp(`^${GREP_SPACE}*(?:[-*+]|[0-9]+[.)])${GREP_SPACE}+\\[ \\]${GREP_SPACE}+(?:[0-9][0-9A-Za-z]*(?:\\.[0-9A-Za-z]+)*[.)]?${GREP_SPACE}+)?\\((?:waiting: |after )`);
+const GREP_IDEA = new RegExp(`^${GREP_SPACE}*(?:[-*+]|[0-9]+[.)])${GREP_SPACE}+\\(waiting: `);
+const STRAY =
+  "looks like a waiting marker to the kyspec-waiting greps but is none the gate reads (in a fence, outside ## Tasks, in a file that is not a change or an idea, or not an item of its own); quote it in a code span";
+
+/** Every file under dir, at any depth, as [relative path, absolute path]. */
+function allFiles(dir, rel) {
+  const files = [];
+  for (const entry of entries(dir)) {
+    const path = `${rel}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...allFiles(join(dir, entry.name), path));
+    else if (entry.isFile()) files.push([path, join(dir, entry.name)]);
+  }
+  return files;
+}
+
+/** Lines that the greps return under dir but that are not in read (a Map of path to line numbers). */
+function strayMarkerProblems(dir, rel, pattern, read) {
+  const problems = [];
+  for (const [path, abs] of allFiles(dir, rel)) {
+    readFileSync(abs, "utf8").split("\n").forEach((line, index) => {
+      if (pattern.test(line) && !read.get(path)?.has(index + 1)) problems.push(`${path}:${index + 1} ${STRAY}`);
+    });
+  }
   return problems;
 }
 
@@ -200,7 +238,7 @@ export function waitingMarkerProblems(text) {
     const raw = entry.text.replace(TASK_NUMBER, "");
     const opens = /^\((?:waiting|after)\b/i.test(rest);
     let opening = null;
-    if (NEAR_MISS.test(rest)) opening = `"${rest.slice(0, 40)}…" is not the waiting marker's form`;
+    if (NEAR_MISS.test(rest)) opening = `"${rest.slice(0, 40)}\u2026" is not the waiting marker's form`;
     else if (opens) {
       // The form first, then where it sits: a misspelt opening is named as misspelt.
       opening = waitingMarkerProblem(rest, entry.ticked, { raw });
@@ -271,7 +309,7 @@ export function ideaWaitingProblems(text) {
   for (const item of ideaItems(text)) {
     const rest = item.text.replace(CODE_SPAN, "code");
     let why = null;
-    if (NEAR_MISS.test(rest)) why = `"${rest.slice(0, 40)}…" is not the waiting marker's form`;
+    if (NEAR_MISS.test(rest)) why = `"${rest.slice(0, 40)}\u2026" is not the waiting marker's form`;
     else if (!/^\(waiting\b/i.test(rest)) continue;
     else if (item.box) why = "an idea's waiting question is a plain list item, no checkbox";
     else {
@@ -331,6 +369,7 @@ export function changeFileProblems(root = ".") {
     }
   };
   collect(changes, "changes", 0);
+  const read = new Map();
   for (const file of files.sort()) {
     const text = readFileSync(join(root, file), "utf8");
     const headings = h2Headings(text);
@@ -339,7 +378,9 @@ export function changeFileProblems(root = ".") {
     }
     for (const [line, why] of plainTextProblems(text)) problems.push(`${file}:${line} ${why}; ${RULE.text}.`);
     for (const [line, why] of waitingMarkerProblems(text)) problems.push(`${file}:${line} ${why}; ${RULE.waiting}.`);
+    read.set(file, new Set(tasksSectionEntries(text).filter((entry) => entry.ticked !== null).map((entry) => entry.line)));
   }
+  for (const stray of strayMarkerProblems(changes, "changes", GREP_TASK, read)) problems.push(`${stray}; ${RULE.waiting}.`);
   return problems;
 }
 
@@ -364,9 +405,12 @@ export function ideaStatusProblems(root = ".") {
       }
       for (const [line, why] of plainTextProblems(text)) problems.push(`${path}:${line} ${why}; ${RULE.text}.`);
       for (const [line, why] of ideaWaitingProblems(text)) problems.push(`${path}:${line} ${why}; ${RULE.ideaWaiting}.`);
+      read.set(path, new Set(ideaItems(text).map((item) => item.line)));
     }
   };
+  const read = new Map();
   check(ideas, "ideas", 0);
+  for (const stray of strayMarkerProblems(ideas, "ideas", GREP_IDEA, read)) problems.push(`${stray}; ${RULE.ideaWaiting}.`);
   return problems;
 }
 

@@ -173,11 +173,17 @@ describe("waiting markers", () => {
     assert.equal(access.length, 1);
     assert.match(access[0], /missing access is never a wait/);
   });
-  it("reads only the Tasks section, outside fenced blocks", () => {
+  it("reads markers only under Tasks, outside fenced blocks, and refuses a marker-shaped line anywhere else", () => {
     const verification = change
-      .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] (waiting: access — not a task here)\n")
-      .replace("## Tasks\n\ntext\n", "## Tasks\n\n```md\n- [ ] (waiting: access — an example)\n```\n");
-    assert.deepEqual(changeFileProblems(tree({ "changes/foo.md": verification })), []);
+      .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] (waiting: Dana — not a task here)\n")
+      .replace("## Tasks\n\ntext\n", "## Tasks\n\n```md\n- [ ] (waiting: Dana — an example)\n```\n");
+    const problems = changeFileProblems(tree({ "changes/foo.md": verification }));
+    assert.equal(problems.length, 2);
+    for (const problem of problems) assert.match(problem, /quote it in a code span/);
+    const quoted = change
+      .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] `(waiting: access — quoted)`\n")
+      .replace("## Tasks\n\ntext\n", "## Tasks\n\n```md\n- `(waiting: access — quoted)`\n```\n");
+    assert.deepEqual(changeFileProblems(tree({ "changes/foo.md": quoted })), []);
   });
   it("refuses access, a malformed marker, an invalid date, and a ticked task that kept its marker", () => {
     const problems = problemsFor([
@@ -277,7 +283,7 @@ describe("the marker's opening is on one plain line", () => {
       "- [ ] (after",
       "  2 — publish) D.",
       "",
-      "- [ ] (waiting: Dana — x) E.",
+      "- [ ]\u00A0(waiting: Dana — x) E.",
       "- [ ] (waiting: dana — x) F.",
       "- [ ] ( waiting: Dana — x) G.",
     ]);
@@ -291,7 +297,7 @@ describe("the marker's opening is on one plain line", () => {
 describe("waits in ideas", () => {
   it("reads a question that wraps, and refuses one whose opening is split or follows a no-break space", () => {
     assert.deepEqual(ideaStatusProblems(tree({ "ideas/a.md": "status: seed\n\n- (waiting: Dana — pick the name\n  for the launch)\n" })), []);
-    const problems = ideaStatusProblems(tree({ "ideas/b.md": "status: seed\n\n- (waiting: Dana on phone\n  — x)\n\n- (waiting: Dana — y)\n" }));
+    const problems = ideaStatusProblems(tree({ "ideas/b.md": "status: seed\n\n- (waiting: Dana on phone\n  — x)\n\n-\u00A0(waiting: Dana — y)\n" }));
     assert.equal(problems.length, 2);
     for (const problem of problems) assert.match(problem, /first line/);
   });
@@ -318,40 +324,62 @@ describe("what the gate accepts, a grep finds", () => {
       "- [ ] (waiting: \tDana on phone — x) A.",
       "- [ ] (waiting: Dana\t — x) B.",
       "- [ ] (waiting: Dana on phone\t — x) C.",
-      "- [ ] (waiting: Dana　 — x) D.",
-      "- [ ] (waiting: Dana﻿ — x) E.",
-      "- [ ] (waiting: Dana on phone — x) F.",
+      "- [ ] (waiting: Dana\u3000 — x) D.",
+      "- [ ] (waiting: Dana\uFEFF — x) E.",
+      "- [ ] (waiting: Dana\u2003on phone — x) F.",
       "- [ ] (waiting: 2026-11-10\t — x) G.",
       "- [ ] (waiting: Dana `on phone` — x) H.",
-      "- [ ] (after 2 — x) I.",
+      "- [ ] (after\u00A02 — x) I.",
     ];
     const problems = problemsFor(lines);
     assert.equal(problems.length, lines.length);
     for (const problem of problems) assert.match(problem, /one space between its words/);
-    assert.equal(idea(["- (waiting: \tDana — x)", "- (waiting: Dana — x)"]).length, 2);
+    assert.equal(idea(["- (waiting: \tDana — x)", "- (waiting: Dana\u00A0— x)"]).length, 2);
   });
   it("refuses a lone carriage return and a NUL byte, and keeps CRLF", () => {
     const lone = changeFileProblems(tree({ "changes/foo.md": withTasks(["- [ ] A.\r- [ ] (waiting: access — x) B."]) }));
-    assert.ok(lone.some((p) => /lone carriage return/.test(p)));
+    assert.ok(lone.some((p) => /line break other than LF or CRLF/.test(p)));
     const nul = changeFileProblems(tree({ "changes/foo.md": withTasks(["- [ ] A.\0"]) }));
     assert.ok(nul.some((p) => /NUL byte/.test(p)));
-    assert.ok(ideaStatusProblems(tree({ "ideas/a.md": "status: seed\r- (waiting: access — x)\n" })).some((p) => /lone carriage return/.test(p)));
+    assert.ok(ideaStatusProblems(tree({ "ideas/a.md": "status: seed\r- (waiting: access — x)\n" })).some((p) => /line break other than LF or CRLF/.test(p)));
+    for (const separator of ["\u2028", "\u2029", "\u0085", "\f", "\v"]) {
+      const odd = changeFileProblems(tree({ "changes/foo.md": withTasks([`- [ ] A.${separator}B.`]) }));
+      assert.ok(odd.some((p) => /line break other than LF or CRLF/.test(p)), JSON.stringify(separator));
+    }
     assert.deepEqual(changeFileProblems(tree({ "changes/foo.md": withTasks(["- [ ] (waiting: Dana — x) A."]).replace(/\n/g, "\r\n") })), []);
   });
-  it("reads fences as the skill defines them", () => {
-    // A line with an info string never closes a fence, so the marker after the real close is read.
-    assert.equal(problemsFor(["```", "a", "```js", "- [ ] (waiting: Dana — x) inside.", "```", "- [ ] (waiting: access — x) A."]).length, 1);
-    // Backticks after the run: inline code, not a fence.
-    assert.equal(problemsFor(["```inline``` here", "- [ ] (waiting: access — x) A."]).length, 1);
+  it("reads a marker or refuses it, wherever a fence opens or closes", () => {
+    const kinds = (lines) => problemsFor(lines).map((p) => (/quote it in a code span/.test(p) ? "stray" : /never a wait/.test(p) ? "access" : p));
+    // A line with an info string never closes a fence: the marker inside is a stray, the one after the close is read.
+    assert.deepEqual(kinds(["```", "a", "```js", "- [ ] (waiting: Dana — x) inside.", "```", "- [ ] (waiting: access — x) A."]), ["access", "stray"]);
+    // Backticks after the run: inline code, not a fence, so the marker is read.
+    assert.deepEqual(kinds(["```inline``` here", "- [ ] (waiting: access — x) A."]), ["access"]);
     // A shorter run does not close a longer fence.
-    assert.deepEqual(problemsFor(["````", "```", "- [ ] (waiting: access — x) quoted.", "````"]), []);
-    assert.equal(problemsFor(["````", "```", "````", "- [ ] (waiting: access — x) A."]).length, 1);
-    // Any indentation opens one, as the skill says.
-    assert.deepEqual(problemsFor(["    ```", "- [ ] (waiting: access — x) quoted.", "    ```"]), []);
+    assert.deepEqual(kinds(["````", "```", "- [ ] (waiting: Dana — x) quoted.", "````", "- [ ] (waiting: access — x) A."]), ["access", "stray"]);
+    // Whatever the gate takes for a fence, a marker-shaped line in it is refused, never skipped.
+    assert.deepEqual(kinds(["    ```", "- [ ] (waiting: Dana — x) quoted.", "    ```"]), ["stray"]);
+    assert.deepEqual(kinds(["```\t", "- [ ] (waiting: Dana — x) quoted.", "```\t"]), ["stray"]);
+  });
+  it("refuses a marker-shaped line in an attachment, any file under changes/ or ideas/, or a heading's section", () => {
+    const attached = changeFileProblems(tree({
+      "changes/foo/foo.md": withTasks(["- [ ] (waiting: Dana — x) A."]),
+      "changes/foo/notes.md": "## Tasks\n\n- [ ] (waiting: Dana — x) in an attachment\n",
+      "changes/foo/log.txt": "- [ ] (after 2 — x) in a log\n",
+    }));
+    assert.deepEqual(attached.map((p) => p.split(" ")[0]), ["changes/foo/log.txt:1", "changes/foo/notes.md:3"]);
+    const ideas = ideaStatusProblems(tree({
+      "ideas/a.md": "status: seed\n\n```\n- (waiting: Dana — fenced)\n```\n",
+      "ideas/p/q/deep.md": "- (waiting: Dana — two levels down)\n",
+    }));
+    assert.deepEqual(ideas.map((p) => p.split(" ")[0]), ["ideas/a.md:4", "ideas/p/q/deep.md:1"]);
   });
   it("takes a name as one person's, capitalised words, and \" on \" in lowercase", () => {
     for (const who of ["Dana via phone", "Dana and Sam", "Dana.", "Dana's team", "Tal's father and mother"]) {
-      assert.match(problemsFor([`- [ ] (waiting: ${who} — x) A.`])[0], /one person's, each word starting with a capital letter/, who);
+      assert.match(problemsFor([`- [ ] (waiting: ${who} — x) A.`])[0], /one person's, in ASCII letters/, who);
+    }
+    // Letters outside ASCII, and invisible ones, are refused: a grep matches a name byte for byte.
+    for (const who of ["Zo\u00EB", "Dana\u034F", "Da\u3164na", "Dana\uFE0F", "\u0414ana", "Dan\u0430"]) {
+      assert.match(problemsFor([`- [ ] (waiting: ${who} — x) A.`])[0], /printable ASCII/, who);
     }
     assert.match(problemsFor(["- [ ] (waiting: Dana On phone — x) A."])[0], /written in lowercase/);
     assert.deepEqual(problemsFor(["- [ ] (waiting: Mary Ann — x) A.", "- [ ] (waiting: O'Brien on phone — x) B.", "- [ ] (waiting: DANA — x) C."]), []);
