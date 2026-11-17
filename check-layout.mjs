@@ -71,34 +71,66 @@ function waitingMarkerProblem(marker, ticked) {
   return `"${who}" is not a person's name, a date YYYY-MM-DD, or release`;
 }
 
-// A task line: its checkbox, an optional task number (`3`, `4.2`, `4c.3`), then the task.
-const TASK_LINE = /^\s*[-*] \[([ xX])\]\s+(?:[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*\.?\s+)?(.*)$/;
+// A list item of any kind (`-`, `*`, `+`, `1.`, `1)`); a task is one with a checkbox,
+// and its text may begin with a task number (`3`, `4.2`, `4c.3`).
+const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+/;
+const TASK_START = /^\s*(?:[-*+]|\d+[.)])\s+\[([ xX])\]\s+(.*)$/;
+const TASK_NUMBER = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*\.?\s+/;
 
-/** [line number, why] for each broken waiting marker under a change's ## Tasks. */
-export function waitingMarkerProblems(text) {
-  const problems = [];
+/**
+ * The text under `## Tasks`, outside fenced blocks, as entries: a task joined with its wrapped
+ * lines ({ line, ticked: true | false, text }), or any other line ({ line, ticked: null, text }).
+ */
+function tasksSectionEntries(text) {
+  const result = [];
   let fence = null;
   let inTasks = false;
+  let task = null;
   text.split("\n").forEach((line, index) => {
     const opener = /^\s*(`{3,}|~{3,})/.exec(line);
     if (opener) {
       if (!fence) fence = opener[1][0];
       else if (opener[1][0] === fence) fence = null;
+      task = null;
       return;
     }
-    if (fence) return;
-    const heading = /^##\s+(.+?)\s*#*\s*$/.exec(line);
-    if (heading) inTasks = heading[1] === "Tasks";
-    // Inline code quotes a marker as an example; it is not one.
-    const task = inTasks && TASK_LINE.exec(line.replace(/`[^`]*`/g, "``"));
-    if (!task) return;
-    const rest = task[2];
-    const opening = /^\(waiting\b/i.test(rest) && waitingMarkerProblem(rest, task[1] !== " ");
-    if (opening) problems.push([index + 1, opening]);
-    if ([...rest.matchAll(/\(waiting\b/gi)].some((match) => match.index > 0)) {
-      problems.push([index + 1, "a waiting marker opens the task (after its number), never inside its text"]);
+    const h2 = fence ? null : /^##\s+(.+?)\s*#*\s*$/.exec(line);
+    if (h2) inTasks = h2[1] === "Tasks";
+    if (fence || !inTasks || /^#{1,6}\s/.test(line) || !line.trim()) {
+      task = null;
+      return;
+    }
+    const start = TASK_START.exec(line);
+    if (start) {
+      task = { line: index + 1, ticked: start[1] !== " ", text: start[2] };
+      result.push(task);
+    } else if (task && !LIST_ITEM.test(line)) {
+      task.text += ` ${line.trim()}`;
+    } else {
+      task = null;
+      result.push({ line: index + 1, ticked: null, text: line });
     }
   });
+  return result;
+}
+
+/** [line number, why] for each broken waiting marker under a change's ## Tasks. */
+export function waitingMarkerProblems(text) {
+  const problems = [];
+  for (const entry of tasksSectionEntries(text)) {
+    // Inline code quotes a marker as an example; it is not one.
+    const body = entry.text.replace(/`[^`]*`/g, "``");
+    if (entry.ticked === null) {
+      if (/\(waiting\b/i.test(body)) problems.push([entry.line, "a waiting marker opens an open task, never other text under Tasks"]);
+      continue;
+    }
+    const rest = body.replace(TASK_NUMBER, "");
+    const opening = /^\(waiting\b/i.test(rest) && waitingMarkerProblem(rest, entry.ticked);
+    if (opening) problems.push([entry.line, opening]);
+    if ([...rest.matchAll(/\(waiting\b/gi)].some((match) => match.index > 0)) {
+      problems.push([entry.line, "a waiting marker opens the task (after its number), never inside its text"]);
+    }
+  }
   return problems;
 }
 

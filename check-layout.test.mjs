@@ -118,6 +118,30 @@ describe("waiting markers", () => {
     assert.equal(problems.length, 4);
     for (const problem of problems) assert.match(problem, /a waiting marker opens the task.*; METHOD\.md, A change/);
   });
+  it("reads a task as a whole list item: wrapped lines, numbered and + lists", () => {
+    assert.deepEqual(problemsFor([
+      "- [ ] (waiting: Dana — the store",
+      "  attestation (her account)) Submit the listing.",
+      "1. [ ] (waiting: release — the next publish) Release the template.",
+      "+ [ ] 3.1 (waiting: 2026-12-01 — the ledger) Review it.",
+    ]), []);
+    const problems = problemsFor([
+      "- [ ] Check the export as a member, then",
+      "  (waiting: access — a member sign-in) record it.",
+      "- [x] Publish the export to the store",
+      "  (waiting: Dana — the store attestation).",
+      "1. [ ] (waiting: access — a sign-in) Verify it.",
+      "2. [x] (waiting: release — the publish) Ticked.",
+      "+ [ ] Ship it (waiting: Dana — the click).",
+      "",
+      "Prose under Tasks that waits (waiting: Tal — a decision) is no task.",
+    ]);
+    assert.equal(problems.length, 6);
+    assert.match(problems[0], /^changes\/foo\.md:\d+ .*a waiting marker opens the task/);
+    assert.match(problems[2], /missing access is never a wait/);
+    assert.match(problems[3], /ticked/);
+    assert.match(problems[5], /a waiting marker opens an open task/);
+  });
   it("reads only the Tasks section, outside fenced blocks", () => {
     const verification = change
       .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] (waiting: access — not a task here)\n")
