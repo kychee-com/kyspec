@@ -142,6 +142,22 @@ describe("waiting markers", () => {
     assert.match(problems[3], /ticked/);
     assert.match(problems[5], /a waiting marker opens an open task/);
   });
+  it("reads group headings under Tasks, a `3)` task number, and code spans of any backtick run", () => {
+    assert.deepEqual(problemsFor([
+      "### 2. Store",
+      "- [ ] 3) (waiting: Dana — the store attestation) Publish the listing.",
+      "- [ ] Quote ``(waiting: access — x)`` and ```a `tick` (waiting: access — y)``` as examples.",
+    ]), []);
+    const problems = problemsFor([
+      "### 2. Member checks (waiting: access — a member sign-in)",
+      "- [ ] 2.1 Check the export as a member.",
+      "",
+      "#### 3. Store (waiting: Dana — the store attestation)",
+      "- [x] 3.1 Published — 2026-11-17.",
+    ]);
+    assert.equal(problems.length, 2);
+    for (const problem of problems) assert.match(problem, /a waiting marker opens an open task, never other text under Tasks/);
+  });
   it("reads only the Tasks section, outside fenced blocks", () => {
     const verification = change
       .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] (waiting: access — not a task here)\n")

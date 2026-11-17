@@ -72,14 +72,17 @@ function waitingMarkerProblem(marker, ticked) {
 }
 
 // A list item of any kind (`-`, `*`, `+`, `1.`, `1)`); a task is one with a checkbox,
-// and its text may begin with a task number (`3`, `4.2`, `4c.3`).
+// and its text may begin with a task number (`3`, `4.2`, `4c.3`, `3)`).
 const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+/;
 const TASK_START = /^\s*(?:[-*+]|\d+[.)])\s+\[([ xX])\]\s+(.*)$/;
-const TASK_NUMBER = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*\.?\s+/;
+const TASK_NUMBER = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*[.)]?\s+/;
+// A code span: a run of backticks closed by a run of the same length (CommonMark).
+const CODE_SPAN = /(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g;
 
 /**
  * The text under `## Tasks`, outside fenced blocks, as entries: a task joined with its wrapped
- * lines ({ line, ticked: true | false, text }), or any other line ({ line, ticked: null, text }).
+ * lines ({ line, ticked: true | false, text }), or any other line, a group heading among them
+ * ({ line, ticked: null, text }).
  */
 function tasksSectionEntries(text) {
   const result = [];
@@ -96,15 +99,15 @@ function tasksSectionEntries(text) {
     }
     const h2 = fence ? null : /^##\s+(.+?)\s*#*\s*$/.exec(line);
     if (h2) inTasks = h2[1] === "Tasks";
-    if (fence || !inTasks || /^#{1,6}\s/.test(line) || !line.trim()) {
+    if (fence || !inTasks || h2 || !line.trim()) {
       task = null;
       return;
     }
     const start = TASK_START.exec(line);
-    if (start) {
+    if (start && !/^#{1,6}\s/.test(line)) {
       task = { line: index + 1, ticked: start[1] !== " ", text: start[2] };
       result.push(task);
-    } else if (task && !LIST_ITEM.test(line)) {
+    } else if (task && !LIST_ITEM.test(line) && !/^#{1,6}\s/.test(line)) {
       task.text += ` ${line.trim()}`;
     } else {
       task = null;
@@ -119,7 +122,7 @@ export function waitingMarkerProblems(text) {
   const problems = [];
   for (const entry of tasksSectionEntries(text)) {
     // Inline code quotes a marker as an example; it is not one.
-    const body = entry.text.replace(/`[^`]*`/g, "``");
+    const body = entry.text.replace(CODE_SPAN, "");
     if (entry.ticked === null) {
       if (/\(waiting\b/i.test(body)) problems.push([entry.line, "a waiting marker opens an open task, never other text under Tasks"]);
       continue;
