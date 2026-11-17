@@ -20,6 +20,7 @@ Four files, three lines, run from the repository root:
    kyspec-verify, kyspec-finish) go into the coding agent's skills directory,
    each keeping its SKILL.md: .claude/skills/ for Claude Code,
    .agents/skills/ for Codex; another host uses its own skill location.
+   skills/kyspec-waiting goes with them: it reports what waits on a person.
    A repository arriving from OpenSpec (it has an openspec/ directory) also
    takes skills/kyspec-migrate, for one run.
 3. check-layout.mjs is the layout gate (dependency-free Node.js). Run
@@ -38,6 +39,7 @@ Four files, three lines, run from the repository root:
     - **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
     - **Coordination room:** the channel and procedure for claiming an area and announcing completion.
     - **Verifier identities:** a test member and a test admin on the staging site, and how a verify thread signs in as each.
+    - **Person acts:** `phone` (the product owner's phone with the app installed: per-sitting), `store-console` (the app store's console: per-sitting), and what each needs done there.
 
 Then start the work: invoke kyspec-brainstorm for an idea, or implement a
 named issue with Kyspec. Verification of a changed user-facing flow runs in

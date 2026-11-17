@@ -47,7 +47,7 @@ entire before writing anything: the specs, every active change, every archived c
    any `<!-- OPENSPEC:START -->` block in `AGENTS.md`. Put `METHOD.md` at the root and the five
    `kyspec-*` skills under `.claude/skills/`, or the directory your harness reads. Write
    `## Method declarations` in `AGENTS.md`: Principles, Release, Coordination room, Surface
-   review, Verifier identities, each only when the product has one.
+   review, Verifier identities, Person acts, each only when the product has one.
 7. **Run the gate,** `node check-layout.mjs`, and fix what it names: an archive directory, a
    date-prefixed change, a change without the seven sections, an idea without a status.
 8. **Write the migration as the first change,** `changes/adopt-kyspec.md`: Why (one source of

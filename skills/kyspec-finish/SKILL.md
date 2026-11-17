@@ -14,8 +14,9 @@ an archive directory or a date-prefixed change. In a repository that nests by pr
 
 ## 1. Check it may
 
-Every task is checked, with evidence, a struck "not needed" naming its decision, or a struck
-"moved" naming the idea file or issue it went to, which exists.
+No task is open. A task still in the file is ticked with evidence, or struck as "not needed"
+naming its decision, "moved" naming the idea file or issue it went to (which exists), or
+"skipped by <name>" with the reason; compacted tasks are in git.
 `## Verification` holds a green CI run for the pushed code, release evidence (or
 `Release: none — <reason>`), and either a verify cycle whose verdict is `pass` or
 `Verify: skipped — <reason>`. If anything is missing, stop: name it and the step that supplies

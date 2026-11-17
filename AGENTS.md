@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Kyspec is a method, not a program. `METHOD.md` is the theory, `skills/` holds the five chain
-pages and `kyspec-migrate`, `MIGRATING.md` is the map from OpenSpec, `check-layout.mjs` is the
+pages, `kyspec-waiting` and `kyspec-migrate`, `MIGRATING.md` is the map from OpenSpec, `check-layout.mjs` is the
 one gate, and `examples/` shows the method on a toy product, before and after a migration. There is
 no build and no dependency.
 

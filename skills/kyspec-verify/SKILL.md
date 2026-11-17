@@ -52,7 +52,8 @@ environment and the earlier cycles. Nothing else of the change, no diff, no comm
    so the driving thread stops instead of trying again (method "Verify").
 5. **On a failure or a block,** add one unchecked task per item under `## Tasks`, naming the
    requirement and what was observed, for kyspec-implement; an item blocked on a person, a
-   date or a release carries the waiting marker (method "A change"). Fix nothing here.
+   date or a release carries the waiting marker (method "A change"), naming the person's
+   declared act where one fits. Fix nothing here.
 6. **Commit** the change file the way `AGENTS.md` says.
 
 ## End

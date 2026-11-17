@@ -28,7 +28,8 @@ would be a new decision under `## Decisions` and a changed scenario in the spec,
 commit (method "Change course in the file").
 
 Commit `5e8d1f4`, push, CI 123 green, `/lantern-deploy` d_0433 live. The task is ticked with
-the SHA; Verification gains the release line. The change touched a user-facing flow, so verify
+the SHA, then leaves the file as the run ends, the SHA in the commit that removes it; Verification
+gains the release line and keeps the latest cycle. The change touched a user-facing flow, so verify
 again, in a fresh thread, never this one.
 
 ## Verify, cycle 2

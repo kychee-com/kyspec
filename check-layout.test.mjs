@@ -191,10 +191,59 @@ describe("waiting markers", () => {
       "- [x] (waiting: release — the publish) Ticked, marker left on.",
     ]);
     assert.equal(problems.length, 8);
-    for (const problem of problems) assert.match(problem, /^changes\/foo\.md:\d+ .*; METHOD\.md, A change: a blocked task is/);
+    for (const problem of problems) assert.match(problem, /^changes\/foo\.md:\d+ .*; METHOD\.md, A change: a blocked task opens with/);
     assert.match(problems[0], /missing access is never a wait/);
     assert.match(problems[1], /missing access is never a wait/);
     assert.match(problems[7], /ticked/);
+  });
+});
+
+describe("acts and dependencies", () => {
+  const withTasks = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  const problemsFor = (lines) => changeFileProblems(tree({ "changes/foo.md": withTasks(lines) }));
+
+  it("accepts a person wait on a declared act, a one-off, and a wait on another task", () => {
+    assert.deepEqual(problemsFor([
+      "- [ ] (waiting: Dana on phone — check the export on her phone) Accept the export.",
+      "- [ ] 2.1 (waiting: Dana on openai-platform — submit the plugin) Submit it.",
+      "- [ ] (waiting: Dana — pick the launch day) Launch.",
+      "- [ ] 3 (after 2.1 — the plugin is listed) Announce it.",
+      "- [ ] Ship it (after 5.3 lands, in prose).",
+      "- [x] 6.4 `wallets send` (after `kms-wallet-signer` 3.2 lands): done — abc1234.",
+      "- [ ] (waiting: Dana on aws-access — grant the role) Read the logs.",
+    ]), []);
+  });
+  it("refuses a malformed act, an act on a date, an after without a task, and a ticked after", () => {
+    const problems = problemsFor([
+      "- [ ] (waiting: Dana on Phone Check — x) A.",
+      "- [ ] (waiting: 2026-12-01 on phone — x) B.",
+      "- [ ] (after — x) C.",
+      "- [ ] (after the deploy — x) D.",
+      "- [x] (after 2 — x) E.",
+      "- [ ] (waiting: access on phone — x) F.",
+    ]);
+    assert.equal(problems.length, 6);
+    assert.match(problems[0], /"Phone Check" is not an act id/);
+    assert.match(problems[1], /an act follows a person's name/);
+    assert.match(problems[2], /\(after <task number> — <what>\)/);
+    assert.match(problems[3], /\(after <task number> — <what>\)/);
+    assert.match(problems[4], /ticked/);
+    assert.match(problems[5], /missing access is never a wait/);
+  });
+});
+
+describe("waits in ideas", () => {
+  it("checks a list item that opens with a marker, and leaves prose alone", () => {
+    const ok = tree({
+      "ideas/a.md": "status: seed\n\n# A\n\n## Open questions\n\n- (waiting: Dana — pick the name) Which name?\n- Prose may say (waiting for a worker) and `(waiting: access — x)`.\n",
+    });
+    assert.deepEqual(ideaStatusProblems(ok), []);
+    const bad = ideaStatusProblems(tree({
+      "ideas/b.md": "status: seed\n\n- (waiting: access — a sign-in) Read it.\n* (waiting: Dana) No what.\n",
+    }));
+    assert.equal(bad.length, 2);
+    assert.match(bad[0], /^ideas\/b\.md:3 missing access is never a wait.*; METHOD\.md, Three tiers/);
+    assert.match(bad[1], /^ideas\/b\.md:4 /);
   });
 });
 

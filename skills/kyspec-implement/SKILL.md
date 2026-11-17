@@ -27,7 +27,8 @@ no-change-file line (method "A change"), just do the work. Read the whole change
    the task with evidence (method #6): a count, a dated live check, `~~struck~~ not needed —
    D<n>`, `~~struck~~ moved — <where>`, or a commit SHA, recorded once it is on the main branch
    (a commit cannot name itself, and a rebase rewrites SHAs). A task blocked outside the work
-   gets the waiting marker (method "A change"); missing access is acquired, never marked.
+   gets the waiting marker (method "A change"): a person on a declared act where one fits,
+   `after <n>` when it waits on another task; missing access is acquired, never marked.
 3. **Change course in the file.** A design surprise becomes a new or amended decision under
    Decisions plus the tasks it implies, never an unrecorded detour. Ask the user only for a
    choice that the change, its prior art and the specs cannot settle.
@@ -50,7 +51,10 @@ no-change-file line (method "A change"), just do the work. Read the whole change
 
 ## End
 
-Name the next step:
+**Compact the change** (method "What an open change holds") in the last commit of the run:
+ticked and struck tasks leave the file, their evidence in that commit's message; Decisions keeps
+only what is not yet in a spec; Verification keeps the release line and the latest cycle. Then
+name the next step:
 
 - `/kyspec-verify <name>` when the change touched a user-facing flow (the declared surface, or
   any UI flow). It must run in a fresh thread that did not write the code, so in a one-thread

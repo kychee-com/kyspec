@@ -41,9 +41,11 @@ The diff touches `src/api/books.js`, so it runs `/lantern-api-review 4c1d9e2..2b
 review reads the diff and the style doc, writes three rule lines and `Verdict: pass` into
 `## Surface review`, replacing the planning note. It rides in the same push as the routes.
 
-Push to `main`. CI run 118 is green. In one bookkeeping commit it ticks the tasks with their
-SHAs (a commit cannot name itself, so SHAs are recorded after the push) and writes the CI run
-under `## Verification`.
+Push to `main`. CI run 118 is green. In one bookkeeping commit it writes the CI run under
+`## Verification` and compacts the change: the three finished tasks leave the file, their SHAs in
+that commit's message (a commit cannot name itself, so SHAs are recorded after the push), and
+Decisions keeps one line, since both decisions are in the spec. The change now holds only what
+is left.
 
 Release: the declaration names `/lantern-deploy`. It runs it: build, deploy `d_0421`, a live
 `GET /books?archived=true`. One line under Verification.
@@ -73,7 +75,7 @@ task naming the requirement, fixes nothing, and commits. Verdict: fail. It names
 
 `/kyspec-finish archive-a-book`, five steps, then the delete.
 
-1. **It may finish.** Every task is checked with evidence; Verification holds CI 123 green,
+1. **It may finish.** No task is open; Verification holds CI 123 green,
    deploy `d_0433`, and cycle 2 `pass`.
 2. **Specs settled.** It reads `specs/reading-list.md` and confirms the requirement and its
    three scenarios are there, worded as the spec keeps them. The section holds no promise.

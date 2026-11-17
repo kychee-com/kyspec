@@ -46,29 +46,53 @@ const RULE = Object.freeze({
   file: "METHOD.md, A change: a change is changes/<name>.md, or changes/<name>/<name>.md beside its attachments",
   status: `METHOD.md, Three tiers: an idea's first line is \`status: ${IDEA_STATUSES.join(" | ")}\``,
   waiting:
-    "METHOD.md, A change: a blocked task is `- [ ] (waiting: <name | YYYY-MM-DD | release> — <what unblocks it>) <task>`; missing access is never a wait, and the marker goes when the task is ticked",
+    "METHOD.md, A change: a blocked task opens with `(waiting: <name> [on <act>] | <YYYY-MM-DD> | release — <what unblocks it>)` or `(after <task number> — <what>)`; missing access is never a wait, and the marker goes when the task is ticked",
+  ideaWaiting:
+    "METHOD.md, Three tiers: an open question only a person can answer is a list item that opens with `(waiting: <name> [on <act>] — <question>)`; missing access is never a wait",
 });
 
 const PERSON = /^\p{L}[\p{L}\p{M}' .-]*$/u;
+const ACT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const TASK_REF = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*$/;
+const NO_ACCESS = "missing access is never a wait: the thread that meets it acquires it";
 
-/** Why one waiting marker (the text from "(waiting" on) breaks the form, or null. */
-function waitingMarkerProblem(marker, ticked) {
-  if (ticked) return "a ticked task still carries its waiting marker";
+/** The marker's text up to its closing parenthesis, or null when it never closes. */
+function markerText(marker) {
   let depth = 0;
-  let close = -1;
-  for (let i = 0; i < marker.length && close < 0; i++) {
+  for (let i = 0; i < marker.length; i++) {
     if (marker[i] === "(") depth++;
-    else if (marker[i] === ")" && --depth === 0) close = i;
+    else if (marker[i] === ")" && --depth === 0) return marker.slice(0, i + 1);
   }
-  if (close < 0) return "the waiting marker is never closed";
-  const form = /^\(waiting: (.*?) — (.+)\)$/s.exec(marker.slice(0, close + 1));
-  if (!form || !form[1].trim()) return `"${marker.slice(0, close + 1)}" is not the waiting marker's form`;
-  const who = form[1].trim();
-  if (/\baccess\b/i.test(who)) return "missing access is never a wait: the thread that meets it acquires it";
+  return null;
+}
+
+/** Why a waiting marker's <who> is wrong: a person (on an act), a date, or release. */
+function whoProblem(who) {
+  const act = / on /.test(who) ? /^(.+?) on (.+)$/.exec(who) : null;
+  const name = act ? act[1].trim() : who;
+  if (/\baccess\b/i.test(name)) return NO_ACCESS;
+  if (act) {
+    if (!PERSON.test(name) || /^\d/.test(name) || name === "release") return `an act follows a person's name, never "${name}"`;
+    return ACT.test(act[2].trim()) ? null : `"${act[2].trim()}" is not an act id: lowercase words joined by hyphens`;
+  }
   if (who === "release" || PERSON.test(who)) return null;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(who) ? new Date(`${who}T00:00:00Z`) : null;
   if (date && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(who)) return null;
   return `"${who}" is not a person's name, a date YYYY-MM-DD, or release`;
+}
+
+/** Why one marker (the text from "(waiting" or "(after" on) breaks its form, or null. */
+function waitingMarkerProblem(marker, ticked) {
+  if (ticked) return "a ticked task still carries its waiting marker";
+  const whole = markerText(marker);
+  if (!whole) return "the waiting marker is never closed";
+  if (/^\(after\b/i.test(whole)) {
+    const after = /^\(after (.*?) — (.+)\)$/s.exec(whole);
+    return after && TASK_REF.test(after[1].trim()) ? null : `"${whole}" is not \`(after <task number> — <what>)\``;
+  }
+  const form = /^\(waiting: (.*?) — (.+)\)$/s.exec(whole);
+  if (!form || !form[1].trim()) return `"${whole}" is not the waiting marker's form`;
+  return whoProblem(form[1].trim());
 }
 
 // A list item of any kind (`-`, `*`, `+`, `1.`, `1)`); a task is one with a checkbox,
@@ -121,14 +145,14 @@ function tasksSectionEntries(text) {
 export function waitingMarkerProblems(text) {
   const problems = [];
   for (const entry of tasksSectionEntries(text)) {
-    // Inline code quotes a marker as an example; it is not one.
-    const body = entry.text.replace(CODE_SPAN, "");
+    // Inline code quotes a marker as an example; it is not one, and it still holds its place.
+    const body = entry.text.replace(CODE_SPAN, "code");
     if (entry.ticked === null) {
       if (/\(waiting\b/i.test(body)) problems.push([entry.line, "a waiting marker opens an open task, never other text under Tasks"]);
       continue;
     }
     const rest = body.replace(TASK_NUMBER, "");
-    const opening = /^\(waiting\b/i.test(rest) && waitingMarkerProblem(rest, entry.ticked);
+    const opening = /^\((?:waiting|after)\b/i.test(rest) && waitingMarkerProblem(rest, entry.ticked);
     if (opening) problems.push([entry.line, opening]);
     if ([...rest.matchAll(/\(waiting\b/gi)].some((match) => match.index > 0)) {
       problems.push([entry.line, "a waiting marker opens the task (after its number), never inside its text"]);
@@ -160,6 +184,25 @@ function entries(dir) {
 
 function isChangeDir(dir, name) {
   return existsSync(join(dir, name, `${name}.md`));
+}
+
+/** [line number, why] for each list item in an idea that opens with a broken waiting marker. */
+export function ideaWaitingProblems(text) {
+  const problems = [];
+  let fence = null;
+  text.split(/\r\n?|\n/).forEach((line, index) => {
+    const opener = /^\s*(`{3,}|~{3,})/.exec(line);
+    if (opener) {
+      if (!fence) fence = opener[1][0];
+      else if (opener[1][0] === fence) fence = null;
+      return;
+    }
+    const item = !fence && /^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?(.*)$/.exec(line);
+    const rest = item ? item[1].replace(CODE_SPAN, "code") : "";
+    const why = /^\(waiting\b/i.test(rest) && waitingMarkerProblem(rest, false);
+    if (why) problems.push([index + 1, why]);
+  });
+  return problems;
 }
 
 /** Archive directories and date-prefixed entries anywhere under changes/. */
@@ -234,11 +277,13 @@ export function ideaStatusProblems(root = ".") {
         continue;
       }
       if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-      const first = readFileSync(join(dir, entry.name), "utf8").split(/\r\n?|\n/, 1)[0];
+      const text = readFileSync(join(dir, entry.name), "utf8");
+      const first = text.split(/\r\n?|\n/, 1)[0];
       const status = /^status:\s*(.*)$/i.exec(first);
       if (!status || !IDEA_STATUSES.includes(/^[a-z]*/.exec(status[1])[0])) {
         problems.push(`${path} starts "${first.trim()}"; ${RULE.status}.`);
       }
+      for (const [line, why] of ideaWaitingProblems(text)) problems.push(`${path}:${line} ${why}; ${RULE.ideaWaiting}.`);
     }
   };
   check(ideas, "ideas", 0);

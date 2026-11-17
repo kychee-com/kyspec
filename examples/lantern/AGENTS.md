@@ -13,6 +13,9 @@ method; the five `kyspec-*` skills and the two Lantern skills are under `.claude
   `openapi.json`, judged against `docs/api-style.md`.
 - **Verifier identities:** a reader is anyone with https://lantern.example and the public
   docs; Lantern has no sign-in yet.
+- **Person acts:** `phone` (Ada, per-sitting: open https://lantern.example on her phone and do
+  what the task names), `release-sign-off` (Ada, per-sitting: approve the deploy
+  `/lantern-deploy` prepares).
 
 No coordination room: one session works this repository at a time.
 

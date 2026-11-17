@@ -78,7 +78,7 @@ Start with a small change you already need. The useful test is whether the next 
 
 ### 1. Copy the method and skills
 
-Copy `METHOD.md` to your repository root. Copy the five chain directories under `skills/` into your coding agent's skills directory, preserving each `SKILL.md`; a repository arriving from OpenSpec also takes `kyspec-migrate`, for one run.
+Copy `METHOD.md` to your repository root. Copy the five chain directories under `skills/`, and `kyspec-waiting`, into your coding agent's skills directory, preserving each `SKILL.md`; a repository arriving from OpenSpec also takes `kyspec-migrate`, for one run.
 
 | Local coding agent | Repository location | Example invocation |
 | --- | --- | --- |
@@ -99,6 +99,7 @@ Add `## Method declarations` to `AGENTS.md`. Name the documents and skills your 
 - **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
 - **Coordination room:** the channel and procedure for claiming an area and announcing completion.
 - **Verifier identities:** a test member and a test admin on the staging site, and how a verify thread signs in as each.
+- **Person acts:** `phone` (the product owner's phone with the app installed: per-sitting), `store-console` (the app store's console: per-sitting), and what each needs done there.
 ~~~
 
 These are example declarations, not bundled release or review skills. Omit declarations that do not apply; the method defines their behavior in [Method declarations](METHOD.md#method-declarations).
@@ -117,7 +118,7 @@ Verification of a changed user-facing flow runs in a **fresh thread with access 
 
 **Keep your requirement prose and WHEN/THEN scenarios. Change where the knowledge lives and how work finishes.**
 
-The full map, artifact by artifact, is [MIGRATING.md](MIGRATING.md), and the sixth skill, [`kyspec-migrate`](skills/kyspec-migrate/SKILL.md), runs it on a branch and records the migration as your first change. [`examples/migration`](examples/migration) shows one repository before and after. The transition is a repository edit; in outline:
+The full map, artifact by artifact, is [MIGRATING.md](MIGRATING.md), and [`kyspec-migrate`](skills/kyspec-migrate/SKILL.md), runs it on a branch and records the migration as your first change. [`examples/migration`](examples/migration) shows one repository before and after. The transition is a repository edit; in outline:
 
 1. **Reconcile the current behavior.** Fold already implemented delta requirements into the current specs. Keep unimplemented proposals separate.
 2. **Move the specs into the Kyspec layout.** Use `specs/<capability>.md`, or `specs/<capability>/<capability>.md` when the capability has attachments. Keep requirement names and scenarios, and update links to moved specs.
@@ -141,7 +142,7 @@ We use it with parallel Claude Code and Codex sessions. One run402 change moved 
 - [`METHOD.md`](METHOD.md): the rules, including the five skills, seven change sections, verification, and finishing.
 - [`WHY.md`](WHY.md): the reasons for the method, its OpenSpec lineage, and adoption questions.
 - [`MIGRATING.md`](MIGRATING.md): moving from OpenSpec, artifact by artifact.
-- [`skills/`](skills): the five skills of the chain, and `kyspec-migrate`.
+- [`skills/`](skills): the five skills of the chain, `kyspec-waiting` (what waits on a person), and `kyspec-migrate`.
 - [`check-layout.mjs`](check-layout.mjs) and [its tests](check-layout.test.mjs): the structural check.
 - [`examples/`](examples): a product snapshot, worked workflows, and a migration before and after.
 

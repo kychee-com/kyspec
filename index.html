@@ -321,8 +321,10 @@
         </table>
       </div>
       <p class="note">
-        A sixth page, <a href="/skills/kyspec-migrate/SKILL.html">kyspec-migrate</a>, is outside the
-        chain: a repository arriving from OpenSpec runs it once, on a branch.
+        Two pages are outside the chain: <a href="/skills/kyspec-waiting/SKILL.html">kyspec-waiting</a>
+        reports everything that waits on one person, grouped by the act that would release it, and
+        <a href="/skills/kyspec-migrate/SKILL.html">kyspec-migrate</a> is run once, on a branch, by a
+        repository arriving from OpenSpec.
       </p>
     </section>
 
@@ -415,8 +417,8 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
           for <a href="https://code.claude.com/docs/en/skills">Claude Code</a> (<code>/kyspec-brainstorm &lt;topic&gt;</code>),
           <code>.agents/skills/</code> for <a href="https://learn.chatgpt.com/docs/build-skills">Codex</a>
           (<code>$kyspec-brainstorm &lt;topic&gt;</code>). For another host or a cloud session, use its
-          supported skill installation mechanism. A repository arriving from OpenSpec also takes
-          <code>kyspec-migrate</code>, for one run.</li>
+          supported skill installation mechanism. <code>kyspec-waiting</code> goes with them; a
+          repository arriving from OpenSpec also takes <code>kyspec-migrate</code>, for one run.</li>
         <li><strong>Declare your product&rsquo;s rules.</strong> Add <code>## Method declarations</code>
           to <code>AGENTS.md</code> and name the documents and skills your product actually uses.
           Omit declarations that do not apply; the method defines their behavior in
@@ -427,7 +429,8 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
 - **Release:** /deploy for the API and site; /publish for the npm package.
 - **Surface review:** /review-api for src/api/** and openapi.json; judge against docs/api-principles.md.
 - **Coordination room:** the channel and procedure for claiming an area and announcing completion.
-- **Verifier identities:** a test member and a test admin on the staging site, and how a verify thread signs in as each.</code></pre></li>
+- **Verifier identities:** a test member and a test admin on the staging site, and how a verify thread signs in as each.
+- **Person acts:** `phone` (the product owner's phone with the app installed: per-sitting), `store-console` (the app store's console: per-sitting), and what each needs done there.</code></pre></li>
         <li><strong>Add the layout check (recommended).</strong> Run <code>node check-layout.mjs</code>
           in CI. It checks the structure of changes and ideas, including the rule against archived
           or date-prefixed changes. Reviewers and the finish workflow assess the requirements and
@@ -494,7 +497,7 @@ cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claud
         <li><a href="/METHOD.html">METHOD.md</a>: the rules, including the five skills, seven change sections, verification, and finishing.</li>
         <li><a href="/WHY.html">WHY.md</a>: the reasons for the method, its OpenSpec lineage, and adoption questions.</li>
         <li><a href="/MIGRATING.html">MIGRATING.md</a>: moving from OpenSpec, artifact by artifact.</li>
-        <li><a href="https://github.com/kychee-com/kyspec/tree/main/skills">skills/</a>: the five skills of the chain, and <code>kyspec-migrate</code>.</li>
+        <li><a href="https://github.com/kychee-com/kyspec/tree/main/skills">skills/</a>: the five skills of the chain, <code>kyspec-waiting</code>, and <code>kyspec-migrate</code>.</li>
         <li><a href="/check-layout.mjs">check-layout.mjs</a> and <a href="https://github.com/kychee-com/kyspec/blob/main/check-layout.test.mjs">its tests</a>: the structural check.</li>
         <li><a href="/examples/">examples/</a>: a product snapshot, worked workflows, and a migration before and after.</li>
         <li><a href="/llms.txt">llms.txt</a>: the install and migration steps, written for a coding agent.</li>

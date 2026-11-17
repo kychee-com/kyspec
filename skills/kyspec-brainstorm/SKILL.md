@@ -49,7 +49,8 @@ the topic implies; ask once only when two are plausible.
      (`status: parked — waits on the postage design`)
    - `# <title>`, then the problem and who has it, in a few sentences
    - the idea; the approaches and the pick; prior art (spec D-ids, the product's principles by
-     number, sibling ideas) as links; the lean canvas; open questions; references (a research
+     number, sibling ideas) as links; the lean canvas; open questions, one that only a person
+     can answer opening its list item with `(waiting: <name> — …)`; references (a research
      document is linked, never pasted)
    `seed` is a first sketch; `explored` means the problem, idea, differentiator and smallest cut
    are settled; `parked` and `rejected` keep their reason so a later session can disregard the

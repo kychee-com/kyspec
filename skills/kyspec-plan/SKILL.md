@@ -23,7 +23,9 @@ commit; when the request was "implement …", just do the work, outside the chai
    code those specs govern. When no spec owns the behavior, name the spec that should: the
    nearest one, or a new one marked `(new)`. If a change for this work already exists
    (`changes/<name>.md`, or `changes/<name>/<name>.md`), continue it instead of starting
-   another.
+   another. If the idea holds an open question about what is built that waits on a person
+   (`- (waiting: <name> — …)`), or you meet one, stop: write no change, put the question in the
+   idea that way, and name it to the user (method "Three tiers").
 2. **Surface planning.** If the repository's `AGENTS.md` "Method declarations" declares a
    surface review and the change could alter what its paths serve (a response, an error, a
    client, its docs), even from code outside them, read method "Before planning a surface

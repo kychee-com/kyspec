@@ -24,14 +24,10 @@ status it had.
 
 ## Decisions
 
-- D1 → D-reading-list-3 in specs/reading-list.md (archive is a verb route)
-- D2 → D-reading-list-4 in specs/reading-list.md (archived books are a query filter)
+Both are in `specs/reading-list.md`: D-reading-list-3 (archive is a verb route) and D-reading-list-4 (archived books are a query filter).
 
 ## Tasks
 
-- [x] Tests: archive removes from the list, keeps notes, is idempotent; unarchive restores the book — 4 tests, 9f3c2a1
-- [x] `POST /books/:id/archive`, `POST /books/:id/unarchive`, `GET /books?archived=true`, with `openapi.json` for both routes and the `archived` query; the requirement, D1 and D2 moved into `specs/reading-list.md` in the same commit — 9f3c2a1
-- [x] The page: archive on every book, an Archived view with unarchive — 2b7e4d0
 - [ ] Verify cycle 1: unarchive returned the book with status `to-read`; it was `reading` when archived (specs/reading-list.md "Unarchiving") — observed on https://lantern.example, 2026-10-20
 
 ## Surface review

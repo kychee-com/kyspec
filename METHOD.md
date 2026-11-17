@@ -35,12 +35,14 @@ work itself.
 5. **One change, one unit, deleted when done.** A change carries Why, Specs, Prior art,
    Decisions, Tasks, Surface review and Verification. Keep its scope small enough to finish.
    Its requirements and decisions move into the spec as their code ships, so an open change
-   holds only what has not shipped. Once every task is checked and verification passes, the
-   change is deleted.
+   holds only what has not shipped and what waits on someone. Once no task is open and
+   verification passes, the change is deleted.
 
 6. **Evidence, not narrative.** A task line carries a commit SHA, a count, a dated live
-   check, or a struck-through "not needed" naming the decision that removed the need. No logs
-   or diaries: the reader needs to know whether the task is done and how to check.
+   check, or a struck-through "not needed" naming the decision that removed the need. Once
+   the task is done, the commit that removes it from the change carries that evidence, and
+   git is the record. No logs or diaries: the reader needs to know whether the task is done
+   and how to check.
 
 7. **Done means verified by someone who didn't build it.** A change that touches what a user
    sees is verified by a fresh thread that did not write the code. It uses the released
@@ -90,6 +92,10 @@ session can understand the decision without rediscovering it. Every brainstorm e
 idea file, even a five-line `seed`. Only an explicit instruction to drop the idea writes
 nothing.
 
+An open question only a person can answer is a list item that opens with the waiting marker
+("A change"): `- (waiting: <name> — <question>)`. While an idea holds one about what is
+built, kyspec-plan starts no change from it; the idea waits for the answer.
+
 **Products.** A repository with more than one product nests each tree by product:
 `specs/<product>/<capability>.md`, `changes/<product>/<name>.md`, and
 `ideas/<product>/<name>.md`. A spec, change or idea belongs to the product its name starts
@@ -115,13 +121,14 @@ answer. Verify alone runs in a fresh agent.
 Scale the writing to the change: every section may be one line. The five skills are the same
 for every product; product-specific details live in declarations.
 
-A sixth page, **kyspec-migrate**, is outside the chain: a repository arriving from OpenSpec
-runs it once, on a branch, and it ends by recording the migration as that repository's first
-change (`MIGRATING.md`).
+Two pages are outside the chain. **kyspec-waiting** reports, from `main`, everything that
+waits on one person, grouped by the act that would release it; it reads and starts nothing.
+**kyspec-migrate**: a repository arriving from OpenSpec runs it once, on a branch, and it ends
+by recording the migration as that repository's first change (`MIGRATING.md`).
 
 ## Method declarations
 
-In `AGENTS.md`, a product adds `## Method declarations` and declares the five things the
+In `AGENTS.md`, a product adds `## Method declarations` and declares the six things the
 skills cannot know. An undeclared line means that step does not exist for the product.
 
 - **Principles:** the tier-1 documents beside this page. Their numbered principles are
@@ -140,6 +147,13 @@ skills cannot know. An undeclared line means that step does not exist for the pr
   has, such as a member, an admin, or a fresh account on the free path. kyspec-verify signs in
   with them. A kind with no identity yet is made by the thread that needs it and recorded
   here, never waited on; undeclared, the first verify thread that needs one adds the line.
+- **Person acts:** each act a person may be waited on for: an id (lowercase words joined by
+  hyphens), who takes it, where (a device, a site, a credential), the exact instruction, and
+  whether it is one-time (it stays done, like a grant) or per-sitting (done each time, like a
+  login or a phone in hand). A real-world act is declared by where it is done, so one sitting
+  there covers every change that needs it. A marker names its act
+  (`waiting: <name> on <act>`), and kyspec-waiting groups by it; undeclared, a wait is a
+  one-off.
 
 ## A change
 
@@ -177,21 +191,36 @@ and the change keeps one line, `D<n> → D-<capability>-N in <spec path>`. A dec
 governs the work, such as sequencing or a spike, stays in the change and goes with it.
 
 **Tasks.** A checklist with evidence on each line (principle 6): a commit SHA, a count, a
-dated live check, a struck-through "not needed" naming the decision that removed the need, or
-a struck-through "moved" naming where the task went. A task without evidence is open. For a
+dated live check, a struck-through "not needed" naming the decision that removed the need, a
+struck-through "moved" naming where the task went, or a struck-through "skipped by <name>" with
+the reason, for a step only that person could take and chose to skip. A task without evidence
+is open. For a
 public surface change, include the documentation and clients in the blast radius named by the
 product's `AGENTS.md`.
 
-A task blocked on something outside the work carries one marker,
-`- [ ] (waiting: <who> — <what unblocks it>) <task>`, where `<who>` is a person's name, a date
-`YYYY-MM-DD`, or `release`. The marker opens the task (after its number, where tasks are
-numbered), never sits inside its text, and goes when the task is ticked; no other text under
+A task blocked on something outside the work carries one marker, which opens the task (after
+its number, where tasks are numbered):
+
+- `(waiting: <name> on <act> — <what unblocks it>)`: a person, for one of the product's declared
+  person acts ("Method declarations");
+- `(waiting: <name> — <what unblocks it>)`: a person, once;
+- `(waiting: <YYYY-MM-DD> — <what>)` or `(waiting: release — <what>)`: a date or a release;
+- `(after <task number> — <what>)`: another task of this change, never written as a wait on
+  whoever that task waits on.
+
+The marker never sits inside a task's text and goes when the task is ticked; no other text under
 Tasks carries one, neither a heading nor a line of prose. The change's state is read from its
-tasks, never written. Missing access (a sign-in, an account, a grant, a role, a
-tool) is never a wait: the thread that meets it acquires it, and a person's wait names an act
-only that person can take. A task that serves no requirement under Specs and no decision is not
+tasks, never written, and kyspec-waiting reads every wait on a person from them. Missing access
+(a sign-in, an account, a grant, a role, a tool) is never a wait: the thread that meets it
+acquires it, and a person's wait names an act only that person can take. A task that serves no requirement under Specs and no decision is not
 the change's work: it is done as a plain commit, or struck `moved — ideas/<name>.md` (a question
 worth thinking about) or `moved — owner/repo#N` (a chore).
+
+**What an open change holds.** At the end of each kyspec-implement run the change is
+compacted: ticked and struck tasks leave the file, their evidence in the message of the commit
+that removes them (principle 6); Decisions keeps only those not yet in a spec; Specs keeps its
+pointer lines, which name what verify checks; Verification keeps the release line and the latest
+cycle. `git log -- <change>` is the history, so an open change reads as what is left.
 
 **Surface review.** Required when the product declares a surface review and the diff touches
 its paths. The declared review skill reads the diff, using the declared documents as its
@@ -262,10 +291,10 @@ unblock is out of reach, and goes the route above.
 
 kyspec-finish takes five steps before deleting the change:
 
-1. **It may finish:** every task is checked with evidence (a moved task names where it went),
-   and Verification holds a green CI
-   run, release evidence, and either a passing verify cycle or a skip line. Otherwise, stop
-   and name what is missing.
+1. **It may finish:** no task is open (one struck as moved names where it went, one struck as
+   skipped names who skipped it and why), and Verification holds a green CI run, release
+   evidence, and either a passing latest verify cycle or a skip line. Otherwise, stop and name
+   what is missing.
 2. **Specs settled:** every intended requirement is in its main spec. Strike anything still
    unshipped with a reason, or move it out as a new idea. The Specs section holds no promise.
 3. **Decisions folded:** a decision whose code shipped is in its spec already (principle 3).
@@ -300,9 +329,9 @@ cites the section it enforces.
 
 | Section | Check |
 | --- | --- |
-| "A change" (one file or `<name>/<name>.md`; the seven sections, in order; the waiting marker's form) | `check-layout.mjs` |
+| "A change" (one file or `<name>/<name>.md`; the seven sections, in order; the waiting markers' forms and place) | `check-layout.mjs` |
 | "Finishing a change" (no archive directory, no date-prefixed change) | `check-layout.mjs` |
-| "Three tiers" (an idea's first line is its status) | `check-layout.mjs` |
+| "Three tiers" (an idea's first line is its status; a waiting marker opening a list item has the form "A change" gives) | `check-layout.mjs` |
 
 These checks enforce layout. The remaining requirements below rely on review and the finish
 workflow; the layout gate does not establish that a requirement is implemented or that
