@@ -64,7 +64,7 @@ function waitingMarkerProblem(marker, ticked) {
   const form = /^\(waiting: (.*?) — (.+)\)$/s.exec(marker.slice(0, close + 1));
   if (!form || !form[1].trim()) return `"${marker.slice(0, close + 1)}" is not the waiting marker's form`;
   const who = form[1].trim();
-  if (/^access\b/i.test(who)) return "missing access is never a wait: the thread that meets it acquires it";
+  if (/\baccess\b/i.test(who)) return "missing access is never a wait: the thread that meets it acquires it";
   if (who === "release" || PERSON.test(who)) return null;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(who) ? new Date(`${who}T00:00:00Z`) : null;
   if (date && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(who)) return null;
@@ -89,7 +89,7 @@ function tasksSectionEntries(text) {
   let fence = null;
   let inTasks = false;
   let task = null;
-  text.split("\n").forEach((line, index) => {
+  text.split(/\r\n?|\n/).forEach((line, index) => {
     const opener = /^\s*(`{3,}|~{3,})/.exec(line);
     if (opener) {
       if (!fence) fence = opener[1][0];
@@ -141,7 +141,7 @@ export function waitingMarkerProblems(text) {
 export function h2Headings(text) {
   const headings = [];
   let fence = null;
-  for (const line of text.split("\n")) {
+  for (const line of text.split(/\r\n?|\n/)) {
     const opener = /^\s*(`{3,}|~{3,})/.exec(line);
     if (opener) {
       if (!fence) fence = opener[1][0];
@@ -234,7 +234,7 @@ export function ideaStatusProblems(root = ".") {
         continue;
       }
       if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-      const first = readFileSync(join(dir, entry.name), "utf8").split("\n", 1)[0];
+      const first = readFileSync(join(dir, entry.name), "utf8").split(/\r\n?|\n/, 1)[0];
       const status = /^status:\s*(.*)$/i.exec(first);
       if (!status || !IDEA_STATUSES.includes(/^[a-z]*/.exec(status[1])[0])) {
         problems.push(`${path} starts "${first.trim()}"; ${RULE.status}.`);

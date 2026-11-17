@@ -158,6 +158,21 @@ describe("waiting markers", () => {
     assert.equal(problems.length, 2);
     for (const problem of problems) assert.match(problem, /a waiting marker opens an open task, never other text under Tasks/);
   });
+  it("reads files saved with Windows line endings, and refuses access anywhere in <who>", () => {
+    const crlf = (text) => text.replace(/\n/g, "\r\n");
+    const good = withTasks([
+      "- [ ] (waiting: release — the next publish) Release it.",
+      "- [ ] 2.1 (waiting: Dana — the store",
+      "  attestation) Submit the listing.",
+    ]);
+    const bad = withTasks(["- [ ] (waiting: access — a sign-in) Verify it.", "- [x] (waiting: release — x) Ticked."]);
+    assert.deepEqual(changeFileProblems(tree({ "changes/foo.md": crlf(good) })), []);
+    assert.equal(changeFileProblems(tree({ "changes/foo.md": crlf(bad) })).length, 2);
+    assert.deepEqual(ideaStatusProblems(tree({ "ideas/a.md": crlf("status: seed\n\n# A\n") })), []);
+    const access = problemsFor(["- [ ] (waiting: AWS access — the SSO login) Read the logs."]);
+    assert.equal(access.length, 1);
+    assert.match(access[0], /missing access is never a wait/);
+  });
   it("reads only the Tasks section, outside fenced blocks", () => {
     const verification = change
       .replace("## Verification\n\ntext\n", "## Verification\n\n- [ ] (waiting: access — not a task here)\n")
