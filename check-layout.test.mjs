@@ -252,7 +252,49 @@ describe("one spelling, so a grep finds every wait", () => {
   });
 });
 
+describe("the marker's opening is on one plain line", () => {
+  const withTasks = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  const problemsFor = (lines) => changeFileProblems(tree({ "changes/foo.md": withTasks(lines) }));
+  it("accepts a marker whose what wraps after its opening", () => {
+    assert.deepEqual(problemsFor([
+      "- [ ] (waiting: Dana on phone — check the export",
+      "  on her phone) Accept it.",
+      "- [ ] 2.1 (after 2 — the plugin",
+      "  is listed) Announce it.",
+    ]), []);
+  });
+  it("refuses an opening split across lines, a number alone, a no-break space, a lowercase name and a spaced parenthesis", () => {
+    const problems = problemsFor([
+      "- [ ] (waiting: Dana on phone",
+      "  — check it) A.",
+      "",
+      "- [ ] (waiting: Dana on phone —",
+      "  check it) B.",
+      "",
+      "- [ ] 2.",
+      "  (waiting: Dana — x) C.",
+      "",
+      "- [ ] (after",
+      "  2 — publish) D.",
+      "",
+      "- [ ] (waiting: Dana — x) E.",
+      "- [ ] (waiting: dana — x) F.",
+      "- [ ] ( waiting: Dana — x) G.",
+    ]);
+    assert.equal(problems.length, 7);
+    for (const problem of problems.slice(0, 5)) assert.match(problem, /first line/);
+    assert.match(problems[5], /capital/);
+    assert.match(problems[6], /not the waiting marker's form/);
+  });
+});
+
 describe("waits in ideas", () => {
+  it("reads a question that wraps, and refuses one whose opening is split or follows a no-break space", () => {
+    assert.deepEqual(ideaStatusProblems(tree({ "ideas/a.md": "status: seed\n\n- (waiting: Dana — pick the name\n  for the launch)\n" })), []);
+    const problems = ideaStatusProblems(tree({ "ideas/b.md": "status: seed\n\n- (waiting: Dana on phone\n  — x)\n\n- (waiting: Dana — y)\n" }));
+    assert.equal(problems.length, 2);
+    for (const problem of problems) assert.match(problem, /first line/);
+  });
   it("checks a list item that opens with a marker, and leaves prose alone", () => {
     const ok = tree({
       "ideas/a.md": "status: seed\n\n# A\n\n## Open questions\n\n- (waiting: Dana — pick the name) Which name?\n- Prose may say (waiting for a worker) and `(waiting: access — x)`.\n",

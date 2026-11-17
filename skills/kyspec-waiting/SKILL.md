@@ -19,7 +19,8 @@ nests by product (method "Products"), every path here gains its `<product>/` seg
    report.
 2. **Find every wait.** The layout gate allows a marker only where it opens an open task's first
    line (after its number) in a change's `## Tasks`, or opens a plain list item in an idea, and
-   only in its one spelling, so the greps below find every one. Drop what grep can also return that is no marker: a line inside a
+   only in its one spelling, its opening on that first line after plain spaces, so the greps
+   below find every one. Drop what grep can also return that is no marker: a line inside a
    fenced code block, and, in a change, a line outside `## Tasks`. Read each hit in its file,
    with the lines its task wraps onto, for the whole `<what>`.
 3. **Follow what they hold.** In each change with a hit, a task that opens with

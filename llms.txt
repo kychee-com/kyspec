@@ -9,7 +9,7 @@ https://github.com/kychee-com/kyspec (MIT). Five short skills, one method
 
 ## Install the kyspec.com skills
 
-Four files, three lines, run from the repository root:
+Two files and six skills, three lines, run from the repository root:
 
     git clone https://github.com/kychee-com/kyspec /tmp/kyspec
     cp /tmp/kyspec/METHOD.md /tmp/kyspec/check-layout.mjs .
@@ -28,8 +28,8 @@ Four files, three lines, run from the repository root:
    ideas, including the rule against archived or date-prefixed changes.
 4. Add a `## Method declarations` section to AGENTS.md naming what the
    skills cannot know: the principles document, the release skills, the
-   surface review, the coordination room, the verifier identities. Omit a
-   line that does not apply;
+   surface review, the coordination room, the verifier identities, the person
+   acts. Omit a line that does not apply;
    METHOD.md "Method declarations" defines each. Example:
 
     ## Method declarations

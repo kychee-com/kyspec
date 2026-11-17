@@ -32,8 +32,9 @@ holding no promise the specs do not already keep.
 
 ## 3. Fold Decisions
 
-A decision whose code shipped is there already, behind its pointer line `D<n> → D-…` (method
-#3); confirm by reading the spec. Each other decision that still governs the code moves into
+A decision whose code shipped is in its spec already (method #3), and compaction has removed it
+from the change, pointer line and all; the compacting commits' messages name its D-id if you
+need it. Each decision still under Decisions that governs the code moves into
 the owning spec's `## Design notes` (added
 as the spec's last section when it has none) as `D-<capability>-N`, the next free N in that
 spec, with its rationale and the alternative it rejected. An override of prior art names the

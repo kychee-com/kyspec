@@ -92,8 +92,9 @@ session can understand the decision without rediscovering it. Every brainstorm e
 idea file, even a five-line `seed`. Only an explicit instruction to drop the idea writes
 nothing.
 
-An open question only a person can answer is a list item that opens with the waiting marker
-("A change"): `- (waiting: <name> — <question>)`. While an idea holds one about what is
+An open question only a person can answer is a plain list item that opens with the waiting
+marker, spelled and placed as "A change" says: `- (waiting: <name> — <question>)`; the question
+may wrap onto the lines after. While an idea holds one about what is
 built, kyspec-plan starts no change from it; the idea waits for the answer.
 
 **Products.** A repository with more than one product nests each tree by product:
@@ -152,8 +153,8 @@ skills cannot know. An undeclared line means that step does not exist for the pr
   whether it is one-time (it stays done, like a grant) or per-sitting (done each time, like a
   login or a phone in hand). A real-world act is declared by where it is done, so one sitting
   there covers every change that needs it. A marker names its act
-  (`waiting: <name> on <act>`), and kyspec-waiting groups by it; undeclared, a wait is a
-  one-off.
+  (`waiting: <name> on <act>`), and kyspec-waiting groups by it. A wait that names no act is a
+  one-off; one that names an act not declared here is reported as undeclared.
 
 ## A change
 
@@ -208,8 +209,9 @@ its number, where tasks are numbered):
 - `(after <task number> — <what>)`: another task of this change, never written as a wait on
   whoever that task waits on.
 
-The marker is spelled exactly as shown, one space between its words, so a grep finds every one. It
-never sits inside a task's text and goes when the task is ticked; no other text under
+The marker is spelled exactly as shown, one space between its words; its opening, through its
+` — `, stays on the task's first line after plain spaces; and a person's name starts with a capital
+letter. So a grep finds every one. The marker never sits inside a task's text and goes when the task is ticked; no other text under
 Tasks carries one, neither a heading nor a line of prose. The change's state is read from its
 tasks, never written, and kyspec-waiting reads every wait on a person from them. Missing access
 (a sign-in, an account, a grant, a role, a tool) is never a wait: the thread that meets it

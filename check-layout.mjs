@@ -51,7 +51,8 @@ const RULE = Object.freeze({
     "METHOD.md, Three tiers: an open question only a person can answer is a list item that opens with `(waiting: <name> [on <act>] — <question>)`; missing access is never a wait",
 });
 
-const PERSON = /^\p{L}[\p{L}\p{M}' .-]*$/u;
+const PERSON = /^\p{Lu}[\p{L}\p{M}' .-]*$/u;
+const LOWERCASE_NAME = /^\p{Ll}[\p{L}\p{M}' .-]*$/u;
 const ACT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const TASK_REF = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*$/;
 const NO_ACCESS = "missing access is never a wait: the thread that meets it acquires it";
@@ -76,6 +77,7 @@ function whoProblem(who) {
     return ACT.test(act[2].trim()) ? null : `"${act[2].trim()}" is not an act id: lowercase words joined by hyphens`;
   }
   if (who === "release" || PERSON.test(who)) return null;
+  if (LOWERCASE_NAME.test(who)) return `"${who}": a person's name starts with a capital letter, as the report matches names exactly`;
   const date = /^\d{4}-\d{2}-\d{2}$/.test(who) ? new Date(`${who}T00:00:00Z`) : null;
   if (date && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(who)) return null;
   return `"${who}" is not a person's name, a date YYYY-MM-DD, or release`;
@@ -106,6 +108,12 @@ const TASK_START = /^\s*(?:[-*+]|\d+[.)])\s+\[([ xX])\]\s+(.*)$/;
 const TASK_NUMBER = /^[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*[.)]?\s+/;
 // A code span: a run of backticks closed by a run of the same length (CommonMark).
 const CODE_SPAN = /(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g;
+// The one spelling a grep finds: the marker's opening, through its " — ", on the item's first
+// line, with plain spaces or tabs before it.
+const CANON_TASK = /^[ \t]*(?:[-*+]|[0-9]+[.)])[ \t]+\[[ xX]\][ \t]+(?:[0-9][0-9A-Za-z]*(?:\.[0-9A-Za-z]+)*[.)]?[ \t]+)?\((?:waiting:|after) [^\r\n]*? — /;
+const CANON_IDEA = /^[ \t]*(?:[-*+]|[0-9]+[.)])[ \t]+\(waiting: [^\r\n]*? — /;
+const FIRST_LINE = "a marker's opening, through its \" — \", sits on the item's first line after plain spaces, so a grep finds it";
+const NEAR_MISS = /^\(\s+(?:waiting|after)\b/i;
 
 /**
  * The text under `## Tasks`, outside fenced blocks, as entries: a task joined with its wrapped
@@ -133,7 +141,7 @@ function tasksSectionEntries(text) {
     }
     const start = TASK_START.exec(line);
     if (start && !/^#{1,6}\s/.test(line)) {
-      task = { line: index + 1, ticked: start[1] !== " ", text: start[2] };
+      task = { line: index + 1, ticked: start[1] !== " ", text: start[2], first: line };
       result.push(task);
     } else if (task && !LIST_ITEM.test(line) && !/^#{1,6}\s/.test(line)) {
       task.text += ` ${line.trim()}`;
@@ -156,7 +164,11 @@ export function waitingMarkerProblems(text) {
       continue;
     }
     const rest = body.replace(TASK_NUMBER, "");
-    const opening = /^\((?:waiting|after)\b/i.test(rest) && waitingMarkerProblem(rest, entry.ticked);
+    const opens = /^\((?:waiting|after)\b/i.test(rest);
+    let opening = null;
+    if (NEAR_MISS.test(rest)) opening = `"${rest.slice(0, 40)}…" is not the waiting marker's form`;
+    else if (opens && !entry.ticked && !CANON_TASK.test(entry.first)) opening = FIRST_LINE;
+    else if (opens) opening = waitingMarkerProblem(rest, entry.ticked);
     if (opening) problems.push([entry.line, opening]);
     if ([...rest.matchAll(/\(waiting\b/gi)].some((match) => match.index > 0)) {
       problems.push([entry.line, "a waiting marker opens the task (after its number), never inside its text"]);
@@ -190,23 +202,47 @@ function isChangeDir(dir, name) {
   return existsSync(join(dir, name, `${name}.md`));
 }
 
-/** [line number, why] for each list item in an idea that opens with a broken waiting marker. */
-export function ideaWaitingProblems(text) {
-  const problems = [];
+/** An idea's list items, each with the lines it wraps onto: { line, first, box, text }. */
+function ideaItems(text) {
+  const items = [];
   let fence = null;
+  let item = null;
   text.split(/\r\n?|\n/).forEach((line, index) => {
     const opener = /^\s*(`{3,}|~{3,})/.exec(line);
     if (opener) {
       if (!fence) fence = opener[1][0];
       else if (opener[1][0] === fence) fence = null;
+      item = null;
       return;
     }
-    const item = !fence && /^\s*(?:[-*+]|\d+[.)])\s+(\[[ xX]\]\s+)?(.*)$/.exec(line);
-    const rest = item ? item[2].replace(CODE_SPAN, "code") : "";
-    const waits = /^\(waiting\b/i.test(rest);
-    const why = waits && (item[1] ? "an idea's waiting question is a plain list item, no checkbox" : waitingMarkerProblem(rest, false));
-    if (why) problems.push([index + 1, why]);
+    if (fence || !line.trim() || /^#{1,6}\s/.test(line)) {
+      item = null;
+      return;
+    }
+    const start = /^\s*(?:[-*+]|\d+[.)])\s+(\[[ xX]\]\s+)?(.*)$/.exec(line);
+    if (start) {
+      item = { line: index + 1, first: line, box: Boolean(start[1]), text: start[2] };
+      items.push(item);
+    } else if (item) {
+      item.text += ` ${line.trim()}`;
+    }
   });
+  return items;
+}
+
+/** [line number, why] for each list item in an idea that opens with a broken waiting marker. */
+export function ideaWaitingProblems(text) {
+  const problems = [];
+  for (const item of ideaItems(text)) {
+    const rest = item.text.replace(CODE_SPAN, "code");
+    let why = null;
+    if (NEAR_MISS.test(rest)) why = `"${rest.slice(0, 40)}…" is not the waiting marker's form`;
+    else if (!/^\(waiting\b/i.test(rest)) continue;
+    else if (item.box) why = "an idea's waiting question is a plain list item, no checkbox";
+    else if (!CANON_IDEA.test(item.first)) why = FIRST_LINE;
+    else why = waitingMarkerProblem(rest, false);
+    if (why) problems.push([item.line, why]);
+  }
   return problems;
 }
 
