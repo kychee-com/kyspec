@@ -232,6 +232,26 @@ describe("acts and dependencies", () => {
   });
 });
 
+describe("one spelling, so a grep finds every wait", () => {
+  const withTasks = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  it("refuses extra spaces inside a marker", () => {
+    const problems = changeFileProblems(tree({ "changes/foo.md": withTasks([
+      "- [ ] (waiting:  Dana — x) A.",
+      "- [ ] (waiting: Dana  — x) B.",
+      "- [ ] (waiting: Dana  on phone — x) C.",
+      "- [ ] (waiting: Dana on  phone — x) D.",
+      "- [ ] (after  2 — x) E.",
+    ]) }));
+    assert.equal(problems.length, 5);
+    for (const problem of problems) assert.match(problem, /one space/);
+  });
+  it("refuses a checkbox on an idea's waiting question", () => {
+    const problems = ideaStatusProblems(tree({ "ideas/a.md": "status: seed\n\n- [ ] (waiting: Dana — pick the name)\n" }));
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /a plain list item, no checkbox/);
+  });
+});
+
 describe("waits in ideas", () => {
   it("checks a list item that opens with a marker, and leaves prose alone", () => {
     const ok = tree({

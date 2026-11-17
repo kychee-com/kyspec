@@ -18,8 +18,8 @@ nests by product (method "Products"), every path here gains its `<product>/` seg
    hold unpushed edits. Note the commit; the report names it, and the same commit gives the same
    report.
 2. **Find every wait.** The layout gate allows a marker only where it opens an open task's first
-   line (after its number) in a change's `## Tasks`, or opens a list item in an idea, so the
-   greps below find every one. Drop what grep can also return that is no marker: a line inside a
+   line (after its number) in a change's `## Tasks`, or opens a plain list item in an idea, and
+   only in its one spelling, so the greps below find every one. Drop what grep can also return that is no marker: a line inside a
    fenced code block, and, in a change, a line outside `## Tasks`. Read each hit in its file,
    with the lines its task wraps onto, for the whole `<what>`.
 3. **Follow what they hold.** In each change with a hit, a task that opens with
@@ -29,7 +29,7 @@ nests by product (method "Products"), every path here gains its `<product>/` seg
    instruction, place, and kind. An act a marker names that is not declared is reported as
    undeclared, never dropped.
 5. **Report**, every task with its change and line:
-   - **by act**, most tasks released first: the act, its instruction and kind, what the kind
+   - **by act**, most tasks released first, ties by act id: the act, its instruction and kind, what the kind
      means for releasing it (a one-time act's work can then run in any session; a per-sitting
      credential stays in the session where it was given, so its work runs there), its tasks,
      and indented under each, the tasks after it;

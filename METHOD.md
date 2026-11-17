@@ -208,7 +208,8 @@ its number, where tasks are numbered):
 - `(after <task number> — <what>)`: another task of this change, never written as a wait on
   whoever that task waits on.
 
-The marker never sits inside a task's text and goes when the task is ticked; no other text under
+The marker is spelled exactly as shown, one space between its words, so a grep finds every one. It
+never sits inside a task's text and goes when the task is ticked; no other text under
 Tasks carries one, neither a heading nor a line of prose. The change's state is read from its
 tasks, never written, and kyspec-waiting reads every wait on a person from them. Missing access
 (a sign-in, an account, a grant, a role, a tool) is never a wait: the thread that meets it
@@ -218,7 +219,8 @@ worth thinking about) or `moved — owner/repo#N` (a chore).
 
 **What an open change holds.** At the end of each kyspec-implement run the change is
 compacted: ticked and struck tasks leave the file, their evidence in the message of the commit
-that removes them (principle 6); Decisions keeps only those not yet in a spec; Specs keeps its
+that removes them (principle 6); Decisions keeps only those not yet in a spec, so its pointer
+lines go; Specs keeps its
 pointer lines, which name what verify checks; Verification keeps the release line and the latest
 cycle. `git log -- <change>` is the history, so an open change reads as what is left.
 

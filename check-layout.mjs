@@ -86,6 +86,10 @@ function waitingMarkerProblem(marker, ticked) {
   if (ticked) return "a ticked task still carries its waiting marker";
   const whole = markerText(marker);
   if (!whole) return "the waiting marker is never closed";
+  const head = whole.slice(0, Math.max(0, whole.indexOf(" — ")));
+  if (/ {2}/.test(head) || / $/.test(head)) {
+    return `"${whole}" has more than one space between its words; a marker's opening is spelled one way, so a grep finds every one`;
+  }
   if (/^\(after\b/i.test(whole)) {
     const after = /^\(after (.*?) — (.+)\)$/s.exec(whole);
     return after && TASK_REF.test(after[1].trim()) ? null : `"${whole}" is not \`(after <task number> — <what>)\``;
@@ -197,9 +201,10 @@ export function ideaWaitingProblems(text) {
       else if (opener[1][0] === fence) fence = null;
       return;
     }
-    const item = !fence && /^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?(.*)$/.exec(line);
-    const rest = item ? item[1].replace(CODE_SPAN, "code") : "";
-    const why = /^\(waiting\b/i.test(rest) && waitingMarkerProblem(rest, false);
+    const item = !fence && /^\s*(?:[-*+]|\d+[.)])\s+(\[[ xX]\]\s+)?(.*)$/.exec(line);
+    const rest = item ? item[2].replace(CODE_SPAN, "code") : "";
+    const waits = /^\(waiting\b/i.test(rest);
+    const why = waits && (item[1] ? "an idea's waiting question is a plain list item, no checkbox" : waitingMarkerProblem(rest, false));
     if (why) problems.push([index + 1, why]);
   });
   return problems;

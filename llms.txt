@@ -13,7 +13,7 @@ Four files, three lines, run from the repository root:
 
     git clone https://github.com/kychee-com/kyspec /tmp/kyspec
     cp /tmp/kyspec/METHOD.md /tmp/kyspec/check-layout.mjs .
-    cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish} .claude/skills/
+    cp -r /tmp/kyspec/skills/kyspec-{brainstorm,plan,implement,verify,finish,waiting} .claude/skills/
 
 1. METHOD.md goes to the repository root. It is the method the skills cite.
 2. The five chain skills (kyspec-brainstorm, kyspec-plan, kyspec-implement,
