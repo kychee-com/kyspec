@@ -185,8 +185,9 @@ product's `AGENTS.md`.
 A task blocked on something outside the work carries one marker,
 `- [ ] (waiting: <who> — <what unblocks it>) <task>`, where `<who>` is a person's name, a date
 `YYYY-MM-DD`, or `release`. The marker opens the task (after its number, where tasks are
-numbered), never sits inside its text, and goes when the task is ticked; the change's state is
-read from its tasks, never written. Missing access (a sign-in, an account, a grant, a role, a
+numbered), never sits inside its text, and goes when the task is ticked; no other text under
+Tasks carries one, neither a heading nor a line of prose. The change's state is read from its
+tasks, never written. Missing access (a sign-in, an account, a grant, a role, a
 tool) is never a wait: the thread that meets it acquires it, and a person's wait names an act
 only that person can take. A task that serves no requirement under Specs and no decision is not
 the change's work: it is done as a plain commit, or struck `moved — ideas/<name>.md` (a question
