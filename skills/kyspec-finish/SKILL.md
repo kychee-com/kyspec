@@ -1,6 +1,6 @@
 ---
 name: kyspec-finish
-description: Finish a change in five steps then delete it - check it may, settle its Specs into the main specs, fold its Decisions into the spec's Design notes as D-<capability>-N, retire its idea, close linked issues and tell the room - then git rm the change file and push. Use for /kyspec-finish <change>, or when kyspec-implement or kyspec-verify names it.
+description: Finish a change in five steps then delete it - check it may, settle its Specs into the main specs, fold its Decisions into the spec's Design notes as D-<capability>-N, retire its idea, close linked issues, file left-over bugs as GitHub issues and tell the room - then git rm the change file and push. Use for /kyspec-finish <change>, or when kyspec-implement or kyspec-verify names it.
 ---
 
 # /kyspec-finish
@@ -49,11 +49,16 @@ and not yet in the spec goes into that spec's Purpose. Then delete the idea file
 ## 5. Close the loop outside
 
 The finishing commit's message closes the issues the change's `Source:` line or Why names
-(`Closes owner/repo#N`). If `AGENTS.md` declares a coordination room, tell it the change
-finished and which specs it moved.
+(`Closes owner/repo#N`). Every bug the change file records and leaves unfixed (a verify cycle's
+"seen, outside this scope", a defect noted under Verification or in a task) is filed as a GitHub
+issue in the repository before the delete, after a search for an open one that already covers
+it: what was seen, where, what was expected, and what was left behind. Name each issue in the
+finishing commit's message (`Refs owner/repo#N`), since the change file that recorded the bug
+is deleted. If `AGENTS.md` declares a coordination room, tell it the change finished, which
+specs it moved and the issues it filed.
 
 ## Delete
 
 `git rm` the change file (or its directory) in the same commit as the edits of steps 2 to 4, and
 push the way `AGENTS.md` says. Report the specs touched, the D-ids written, the idea retired,
-the issues closed, and the commit. The chain ends here.
+the issues closed, the issues filed for bugs left over, and the commit. The chain ends here.

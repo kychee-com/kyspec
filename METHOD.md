@@ -274,8 +274,9 @@ kyspec-finish takes five steps before deleting the change:
    Repoint every code comment, test or doc that cites the change's path to the relevant id.
 4. **Idea retired:** move any lasting context into the spec's Purpose and delete the idea
    file.
-5. **Loop closed:** close the issues named by the change through the commit message, and
-   announce in the coordination room if one is declared.
+5. **Loop closed:** close the issues named by the change through the commit message, file
+   every bug the change recorded and left unfixed as a GitHub issue (none is lost with the
+   deleted change file), and announce in the coordination room if one is declared.
 
 Then `git rm` the change in the same commit as the spec edits and push. Git holds the history.
 There is no archive directory or date-prefixed change; the layout gate refuses both.

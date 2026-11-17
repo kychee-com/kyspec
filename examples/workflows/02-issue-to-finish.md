@@ -81,7 +81,7 @@ task naming the requirement, fixes nothing, and commits. Verdict: fail. It names
    `D-reading-list-3` and `-4` there and finds nothing left to fold. `grep -rn
    "archive-a-book"` finds no code citing the change.
 4. **Idea retired.** No idea file reads `adopted — changes/archive-a-book.md`; nothing to do.
-5. **Loop closed.** The commit message carries `Closes lantern#12`. No room is declared.
+5. **Loop closed.** The commit message carries `Closes lantern#12`. No bug was left over to file, and no room is declared.
 
 Then `git rm changes/archive-a-book.md` and push. Every lasting thing it held is already in
 the spec, so the finishing commit is the delete:
