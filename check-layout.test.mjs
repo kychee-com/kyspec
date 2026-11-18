@@ -458,3 +458,37 @@ describe("what the gate reads is what git stores", () => {
     assert.deepEqual(problemsFor("O'Brien"), []);
   });
 });
+
+describe("git can say how changes/ and ideas/ are stored, and they are stored as checked out", () => {
+  const dana = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  it("refuses a filter attribute under changes/ or ideas/", () => {
+    const root = tree({
+      "changes/foo.md": dana(["- [ ] (waiting: Dana — x) A."]),
+      "ideas/a.md": "status: seed\n",
+      ".gitattributes": "changes/*.md filter=lfs\n",
+    });
+    execFileSync("git", ["init", "-q", root]);
+    assert.ok(layoutProblems(root).some((p) => /^changes\/foo\.md has filter lfs/.test(p)));
+  });
+  it("refuses a submodule under changes/ or ideas/", () => {
+    const root = tree({ "ideas/a.md": "status: seed\n" });
+    execFileSync("git", ["init", "-q", root]);
+    execFileSync("git", ["-C", root, "update-index", "--add", "--cacheinfo", "160000,1111111111111111111111111111111111111111,changes/sub"]);
+    assert.ok(layoutProblems(root).some((p) => /^changes\/sub is a submodule/.test(p)));
+  });
+  it("fails, never passes unchecked, when git cannot answer", () => {
+    const root = tree({ "changes/foo.md": dana(["- [ ] (waiting: Dana — x) A."]), ".git": "gitdir: /nonexistent/kyspec-gate-test\n" });
+    assert.ok(layoutProblems(root).some((p) => /^git could not say how changes\/ and ideas\/ are stored/.test(p)));
+  });
+  it("reads a file name holding a newline or a quote without losing the answer", () => {
+    const root = tree({
+      "changes/foo.md": dana(["- [ ] (waiting: Dana — x) A."]),
+      'changes/x\n"y.txt': "notes\n",
+      ".gitattributes": "changes/foo.md working-tree-encoding=UTF-16LE-BOM\n",
+    });
+    execFileSync("git", ["init", "-q", root]);
+    const problems = layoutProblems(root);
+    assert.ok(problems.some((p) => /^changes\/foo\.md has working-tree-encoding UTF-16LE-BOM/.test(p)), problems.join("\n"));
+    assert.ok(!problems.some((p) => /git could not say/.test(p)), problems.join("\n"));
+  });
+});

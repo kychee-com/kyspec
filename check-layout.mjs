@@ -52,7 +52,7 @@ const RULE = Object.freeze({
     "METHOD.md, Three tiers: an open question only a person can answer is a list item that opens with `(waiting: <name> [on <act>] — <question>)`; missing access is never a wait",
   text: "METHOD.md, A change: a change or an idea is plain text, its lines ending in LF or CRLF, so a grep reads every line",
   checkout:
-    "METHOD.md, A change: what is under changes/ and ideas/ is committed as it is checked out, no symlink and no working-tree-encoding, so a grep of the repository reads what the gate reads",
+    "METHOD.md, A change: what is under changes/ and ideas/ is committed as it is checked out, no symlink, no working-tree-encoding or filter attribute, no submodule, and git able to say so, so a grep of the repository reads what the gate reads",
 });
 
 // A person's name, as a grep matches it byte for byte: one or more words of ASCII letters, each
@@ -440,22 +440,35 @@ export function checkoutProblems(root = ".") {
     if (lstatSync(dir).isSymbolicLink()) problems.push(`${top}/ is a symlink; ${RULE.checkout}.`);
     else walk(dir, top);
   }
-  if (files.length > 0 && existsSync(join(root, ".git"))) {
-    let attributes = "";
-    try {
-      attributes = execFileSync("git", ["-C", root, "check-attr", "--stdin", "working-tree-encoding"], {
-        input: files.join("\n"),
-        encoding: "utf8",
-      });
-    } catch {
-      attributes = "";
-    }
-    for (const line of attributes.split("\n")) {
-      const match = /^(.*): working-tree-encoding: (.*)$/.exec(line);
-      if (match && match[2] !== "unspecified" && match[2] !== "unset") {
-        problems.push(`${match[1]} has working-tree-encoding ${match[2]}; ${RULE.checkout}.`);
+  if (existsSync(join(root, ".git"))) problems.push(...gitStoreProblems(root, files));
+  return problems;
+}
+
+/**
+ * Asked of git, NUL-separated so no file name can break the answer: a file under changes/ or
+ * ideas/ with a working-tree-encoding or filter attribute, and a submodule there. When git cannot
+ * answer, the gate says so and fails, never passes unchecked.
+ */
+function gitStoreProblems(root, files) {
+  const problems = [];
+  const git = (args, input) =>
+    execFileSync("git", ["-C", root, ...args], { input, encoding: "utf8", maxBuffer: 1 << 30, stdio: ["pipe", "pipe", "pipe"] });
+  try {
+    if (files.length > 0) {
+      const fields = git(["check-attr", "-z", "--stdin", "working-tree-encoding", "filter"], files.map((f) => `${f}\0`).join("")).split("\0");
+      for (let i = 0; i + 2 < fields.length; i += 3) {
+        const [path, attribute, value] = [fields[i], fields[i + 1], fields[i + 2]];
+        if (value !== "unspecified" && value !== "unset") problems.push(`${path} has ${attribute} ${value}; ${RULE.checkout}.`);
       }
     }
+    const staged = git(["ls-files", "-s", "-z", "--", "changes", "ideas"]).split("\0");
+    for (const entry of staged) {
+      const submodule = /^160000 [0-9a-f]+ \d+\t(.*)$/s.exec(entry);
+      if (submodule) problems.push(`${submodule[1]} is a submodule; ${RULE.checkout}.`);
+    }
+  } catch (error) {
+    const why = String(error.stderr || error.message || error).split("\n").find((line) => line.trim()) ?? "no answer";
+    problems.push(`git could not say how changes/ and ideas/ are stored (${why.trim()}); ${RULE.checkout}.`);
   }
   return problems;
 }
