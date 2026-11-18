@@ -229,7 +229,7 @@ worth thinking about) or `moved — owner/repo#N` (a chore).
 compacted: ticked and struck tasks leave the file, their evidence in the message of the commit
 that removes them (principle 6); Decisions keeps only those not yet in a spec, so its pointer
 lines go; Specs keeps its
-pointer lines, which name what verify checks; Verification keeps the release line and the latest
+pointer lines, which name what verify checks; Verification keeps the CI and release lines and the latest
 cycle. `git log -- <change>` is the history, so an open change reads as what is left.
 
 **Surface review.** Required when the product declares a surface review and the diff touches

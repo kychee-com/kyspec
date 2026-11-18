@@ -54,7 +54,7 @@ no-change-file line (method "A change"), just do the work. Read the whole change
 **Compact the change** (method "What an open change holds") in the last commit of the run:
 ticked and struck tasks leave the file, their evidence in that commit's message; Decisions keeps
 only what is not yet in a spec, so the pointer lines step 2 left go too; Specs keeps its
-pointers; Verification keeps the release line and the latest cycle. Then
+pointers; Verification keeps the CI and release lines and the latest cycle (finish reads them). Then
 name the next step:
 
 - `/kyspec-verify <name>` when the change touched a user-facing flow (the declared surface, or
