@@ -21,7 +21,8 @@
 // "Products"), and its entries are read the same way, one level down.
 //
 // Run: node check-layout.mjs [<repository root>]   (exit 1 on any problem)
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -50,12 +51,14 @@ const RULE = Object.freeze({
   ideaWaiting:
     "METHOD.md, Three tiers: an open question only a person can answer is a list item that opens with `(waiting: <name> [on <act>] — <question>)`; missing access is never a wait",
   text: "METHOD.md, A change: a change or an idea is plain text, its lines ending in LF or CRLF, so a grep reads every line",
+  checkout:
+    "METHOD.md, A change: what is under changes/ and ideas/ is committed as it is checked out, no symlink and no working-tree-encoding, so a grep of the repository reads what the gate reads",
 });
 
 // A person's name, as a grep matches it byte for byte: one or more words of ASCII letters, each
 // starting with a capital, an apostrophe or hyphen inside a word, one space between them
 // ("Tal", "Mary Ann", "O'Brien").
-const PERSON = /^[A-Z][A-Za-z'-]*(?: [A-Z][A-Za-z'-]*)*$/;
+const PERSON = /^[A-Z](?:[A-Za-z'-]*[A-Za-z])?(?: [A-Z](?:[A-Za-z'-]*[A-Za-z])?)*$/;
 // A marker's opening holds printable ASCII only, and no backtick: no tab, no other or invisible
 // space, no character a reader sees and a grep does not.
 const ODD_SPACE = /[^\x20-\x7E]|`/;
@@ -414,8 +417,51 @@ export function ideaStatusProblems(root = ".") {
   return problems;
 }
 
+/**
+ * What makes the checkout differ from what git stores, so the gate (reading the checkout) and a
+ * grep of the repository (reading git's objects) would see different text: a symlink under
+ * changes/ or ideas/ (or either directory itself), and, where git can say, a file there under a
+ * `working-tree-encoding` attribute.
+ */
+export function checkoutProblems(root = ".") {
+  const problems = [];
+  const files = [];
+  const walk = (dir, rel) => {
+    for (const entry of entries(dir)) {
+      const path = `${rel}/${entry.name}`;
+      if (entry.isSymbolicLink()) problems.push(`${path} is a symlink; ${RULE.checkout}.`);
+      else if (entry.isDirectory()) walk(join(dir, entry.name), path);
+      else if (entry.isFile()) files.push(path);
+    }
+  };
+  for (const top of ["changes", "ideas"]) {
+    const dir = join(root, top);
+    if (!existsSync(dir)) continue;
+    if (lstatSync(dir).isSymbolicLink()) problems.push(`${top}/ is a symlink; ${RULE.checkout}.`);
+    else walk(dir, top);
+  }
+  if (files.length > 0 && existsSync(join(root, ".git"))) {
+    let attributes = "";
+    try {
+      attributes = execFileSync("git", ["-C", root, "check-attr", "--stdin", "working-tree-encoding"], {
+        input: files.join("\n"),
+        encoding: "utf8",
+      });
+    } catch {
+      attributes = "";
+    }
+    for (const line of attributes.split("\n")) {
+      const match = /^(.*): working-tree-encoding: (.*)$/.exec(line);
+      if (match && match[2] !== "unspecified" && match[2] !== "unset") {
+        problems.push(`${match[1]} has working-tree-encoding ${match[2]}; ${RULE.checkout}.`);
+      }
+    }
+  }
+  return problems;
+}
+
 export function layoutProblems(root = ".") {
-  return [...changeTreeProblems(root), ...changeFileProblems(root), ...ideaStatusProblems(root)];
+  return [...checkoutProblems(root), ...changeTreeProblems(root), ...changeFileProblems(root), ...ideaStatusProblems(root)];
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

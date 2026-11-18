@@ -1,4 +1,5 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -426,5 +427,34 @@ describe("layoutProblems", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     assert.deepEqual(layoutProblems(join(here, "examples", "lantern")), []);
     assert.deepEqual(layoutProblems(join(here, "examples", "migration", "after")), []);
+  });
+});
+
+describe("what the gate reads is what git stores", () => {
+  const dana = (lines) => change.replace("## Tasks\n\ntext\n", `## Tasks\n\n${lines.join("\n")}\n`);
+  it("refuses a symlink under changes/ or ideas/, and either directory as a symlink", () => {
+    const root = tree({ "elsewhere/foo.md": dana(["- [ ] (waiting: Dana — x) A."]), "ideas/a.md": "status: seed\n" });
+    mkdirSync(join(root, "changes"));
+    symlinkSync(join(root, "elsewhere/foo.md"), join(root, "changes/foo.md"));
+    assert.ok(layoutProblems(root).some((p) => /^changes\/foo\.md is a symlink/.test(p)));
+    const linked = tree({ "real/foo.md": dana(["- [ ] (waiting: Dana — x) A."]) });
+    symlinkSync(join(linked, "real"), join(linked, "changes"));
+    assert.ok(layoutProblems(linked).some((p) => /^changes\/ is a symlink/.test(p)));
+  });
+  it("refuses a file under a working-tree-encoding attribute, asked of git", () => {
+    const root = tree({
+      "changes/foo.md": dana(["- [ ] (waiting: Dana — x) A."]),
+      "ideas/a.md": "status: seed\n",
+      ".gitattributes": "ideas/*.md working-tree-encoding=UTF-16LE-BOM\n",
+    });
+    execFileSync("git", ["init", "-q", root]);
+    const problems = layoutProblems(root);
+    assert.ok(problems.some((p) => /^ideas\/a\.md has working-tree-encoding UTF-16LE-BOM/.test(p)), problems.join("\n"));
+    assert.ok(!problems.some((p) => /^changes\/foo\.md has working-tree-encoding/.test(p)));
+  });
+  it("takes a name whose words end in a letter", () => {
+    const problemsFor = (who) => changeFileProblems(tree({ "changes/foo.md": dana([`- [ ] (waiting: ${who} — x) A.`]) }));
+    for (const who of ["Dana'", "Dana-", "X'", "Z''"]) assert.match(problemsFor(who)[0], /one person's/, who);
+    assert.deepEqual(problemsFor("O'Brien"), []);
   });
 });

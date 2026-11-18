@@ -212,11 +212,12 @@ its number, where tasks are numbered):
 
 The marker is spelled exactly as shown: its opening in printable ASCII with one space between
 its words (no tab, no other or invisible space, no code); the opening, through its ` — `, on the
-task's first line after plain spaces; a person's name one person's, in ASCII letters, each word
-starting with a capital (`Dana`, `Mary Ann`, `O'Brien`), and ` on ` before an act in lowercase.
-No other line under `changes/` or `ideas/` looks like one: an example is quoted in a code span.
-A change or an idea is plain text, its lines ending in LF or CRLF. So a grep finds every wait,
-and every line it finds is one. The marker never sits inside a task's text and goes when the task is ticked; no other text under
+task's first line after spaces or tabs; a person's name one person's, in ASCII letters, each word
+starting with a capital and ending with a letter (`Dana`, `Mary Ann`, `O'Brien`), and ` on `
+before an act in lowercase. No other line under `changes/` or `ideas/` looks like one: an example
+is quoted in a code span. A change or an idea is plain text, its lines ending in LF or CRLF, and
+what is under `changes/` and `ideas/` is committed as it is checked out (no symlink, no
+`working-tree-encoding`). So a grep finds every wait, and every line it finds is one. The marker never sits inside a task's text and goes when the task is ticked; no other text under
 Tasks carries one, neither a heading nor a line of prose. The change's state is read from its
 tasks, never written, and kyspec-waiting reads every wait on a person from them. Missing access
 (a sign-in, an account, a grant, a role, a tool) is never a wait: the thread that meets it
