@@ -1,6 +1,6 @@
 ---
 name: kyspec-finish
-description: Finish a change in five steps then delete it - check it may, settle its Specs into the main specs, fold its Decisions into the spec's Design notes as D-<capability>-N, retire its idea, close linked issues, file left-over bugs as GitHub issues and tell the room - then git rm the change file and push. Use for /kyspec-finish <change>, or when kyspec-implement or kyspec-verify names it.
+description: Finish a change in five steps then delete it - check it may, settle its Specs into the main specs, fold its Decisions into the spec's Design notes as D-<capability>-N, retire its idea, close linked issues, file left-over bugs as GitHub issues and tell the room - then git rm the change file and push. Use for /kyspec-finish <change>, or when kyspec-implement or kyspec-verify names it. Under ff (fast forward, method "The chain"), it ends the run with its one report.
 ---
 
 # /kyspec-finish
@@ -63,4 +63,6 @@ specs it moved and the issues it filed.
 
 `git rm` the change file (or its directory) in the same commit as the edits of steps 2 to 4, and
 push the way `AGENTS.md` says. Report the specs touched, the D-ids written, the idea retired,
-the issues closed, the issues filed for bugs left over, and the commit. The chain ends here.
+the issues closed, the issues filed for bugs left over, and the commit. Under fast forward
+(method "The chain"), the report also lists the decisions made without the person. The chain
+ends here.

@@ -1,6 +1,6 @@
 ---
 name: kyspec-verify
-description: Verify a released change as its user would, in a fresh thread that did not write the code - from the change's Why and Specs and only what the product's user has, against production or the deployed branch, never the diff - and append a dated cycle to the change's Verification. Use for /kyspec-verify <change>, or when kyspec-implement names it.
+description: Verify a released change as its user would, in a fresh thread that did not write the code - from the change's Why and Specs and only what the product's user has, against production or the deployed branch, never the diff - and append a dated cycle to the change's Verification. Use for /kyspec-verify <change>, or when kyspec-implement names it. Under ff (fast forward, method "The chain"), the driving thread goes on to the step its verdict names.
 ---
 
 # /kyspec-verify
@@ -59,4 +59,5 @@ environment and the earlier cycles. Nothing else of the change, no diff, no comm
 ## End
 
 Verdict `pass`: name `/kyspec-finish <name>`. Verdict `fail`: name `/kyspec-implement <name>`,
-which releases the fix and comes back here, to a fresh thread, for the next cycle.
+which releases the fix and comes back here, to a fresh thread, for the next cycle. Under fast
+forward (method "The chain"), the thread that started this one goes straight on to that step.

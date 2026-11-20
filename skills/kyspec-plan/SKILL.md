@@ -1,6 +1,6 @@
 ---
 name: kyspec-plan
-description: Write a change file, changes/<name>.md, with its seven sections (Why, Specs, Prior art, Decisions, Tasks, Surface review, Verification) from an idea file, a GitHub issue, or a topic, grounded in a real prior-art search. Use for /kyspec-plan, "plan X", "write the change for issue N", or as the first step of "implement owner/repo#N".
+description: Write a change file, changes/<name>.md, with its seven sections (Why, Specs, Prior art, Decisions, Tasks, Surface review, Verification) from an idea file, a GitHub issue, or a topic, grounded in a real prior-art search. Use for /kyspec-plan, "plan X", "write the change for issue N", or as the first step of "implement owner/repo#N". Under ff (fast forward, method "The chain"), goes straight on to implement.
 ---
 
 # /kyspec-plan
@@ -11,7 +11,7 @@ every path here gains its `<product>/` segment.
 
 **Input:** an idea (`ideas/<name>.md`), an issue (`owner/repo#N`, read with its comments), or
 a topic. Name the change in kebab-case after the outcome, not the mechanism. Ask once only when
-two products are plausible.
+two products are plausible; under fast forward, pick one and say which in the change.
 
 **Below the line, stop.** A commit that touches no spec and carries no decision (a typo, a
 dependency bump, a test fix) needs no change file (method "A change"). Say so and make the
@@ -67,5 +67,5 @@ commit; when the request was "implement …", just do the work, outside the chai
 
 ## End
 
-Name the path and the next step: `/kyspec-implement <name>`. When the chain runs in one
-thread, go straight on.
+Name the path and the next step: `/kyspec-implement <name>`. Under fast forward (method "The
+chain"), or when the chain runs in one thread, go straight on.

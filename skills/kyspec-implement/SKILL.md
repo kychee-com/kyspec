@@ -1,6 +1,6 @@
 ---
 name: kyspec-implement
-description: Execute a change file's Tasks — tests first where the repo asks, each Specs requirement moved into its spec in the same commit as the code, every task ticked with evidence, surface review when declared — push, record CI, then run the product's declared release skills and record their evidence. Use for /kyspec-implement <change>, "implement <change>", or "implement owner/repo#N" (plans first when no change exists).
+description: Execute a change file's Tasks — tests first where the repo asks, each Specs requirement moved into its spec in the same commit as the code, every task ticked with evidence, surface review when declared — push, record CI, then run the product's declared release skills and record their evidence. Use for /kyspec-implement <change>, "implement <change>", or "implement owner/repo#N" (plans first when no change exists). Under ff (fast forward, method "The chain"), runs on through release, verify and finish.
 ---
 
 # /kyspec-implement
@@ -31,7 +31,8 @@ no-change-file line (method "A change"), just do the work. Read the whole change
    `after <n>` when it waits on another task; missing access is acquired, never marked.
 3. **Change course in the file.** A design surprise becomes a new or amended decision under
    Decisions plus the tasks it implies, never an unrecorded detour. Ask the user only for a
-   choice that the change, its prior art and the specs cannot settle.
+   choice that the change, its prior art and the specs cannot settle; under fast forward (method "The chain"), make that choice too and
+   record it as a decision, unless it is one of the stops that section lists.
 4. **Surface review.** If `AGENTS.md` declares one and the diff touches its paths, or changes
    what they serve from code elsewhere, run it on the diff; its output replaces the planning
    note under `## Surface review` and rides in the same push as the files it covers. A `fail`
@@ -69,6 +70,9 @@ name the next step:
   the room at high importance, if one is declared).
 - Otherwise write `Verify: skipped — <reason>` under Verification and name
   `/kyspec-finish <name>`.
+- Under fast forward (method "The chain"), go straight on to the step named: the verify loop,
+  then finish. Only the person's own "skip verify" skips a required verify, written
+  `Verify: skipped — by <name>: <reason>`.
 - Stopped short: first move out each open task that serves no requirement and no decision
   (method "A change") and mark each one that waits; then name the tasks left and that
   `/kyspec-implement <name>` resumes them.

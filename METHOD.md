@@ -120,6 +120,25 @@ Each skill accepts the change or idea name and ends by naming the next step. The
 from "implement owner/repo#N" in one coordinating thread, with no question a one-shot cannot
 answer. Verify alone runs in a fresh agent.
 
+**Fast forward.** The person can say `ff` or "fast forward" at any step. From then on the
+thread runs the rest of the chain without handing back: each skill's End goes straight on to
+the step it names, through the Release skills, verify when "Verify" requires it, and finish. A
+choice a skill would have put to the person is made, and written as a decision with its reason
+and the alternative it rejects, so the specs' Design notes show it later. Fast forward changes
+no rule, it only removes the hand-backs: verify still runs for a user-facing flow (only the
+person's own "skip verify" skips it, written `Verify: skipped — by <name>: <reason>`), and
+nothing the product reserves for a person happens without them. It stops only for:
+
+1. a question about what is built that only a person can answer (kyspec-plan's stop);
+2. an act the product's `AGENTS.md` reserves for a person: a declared person act, an
+   approval, a spend beyond the free path;
+3. verify stopping short of a pass ("Verify"), or CI the thread cannot turn green.
+
+At a stop the thread first does all the work it still can and marks each wait ("A change"),
+then stops once, naming them. Fast forward ends with one report: what shipped, the decisions
+made without the person, and where and why it stopped. The mode lasts for the thread and is
+written nowhere; a new session needs `ff` again.
+
 Scale the writing to the change: every section may be one line. The five skills are the same
 for every product; product-specific details live in declarations.
 

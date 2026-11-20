@@ -42,7 +42,7 @@ The working tree holds current specs, active work, and ideas worth keeping. Git 
 
 ### Nothing to operate
 
-The agent reads five short skills and edits ordinary Markdown files. Product-specific instructions live in `AGENTS.md`. A dependency-free Node.js check covers the required layout; review and verification cover meaning and behavior.
+The agent reads five short skills and edits ordinary Markdown files. Run them one at a time, or say `ff` (fast forward) at any step and the agent runs the rest of the chain to finish, stopping only for what needs a person. Product-specific instructions live in `AGENTS.md`. A dependency-free Node.js check covers the required layout; review and verification cover meaning and behavior.
 
 ## The difference in one change
 

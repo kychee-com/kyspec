@@ -1,6 +1,6 @@
 ---
 name: kyspec-brainstorm
-description: Think an idea through with a partner who challenges it and grounds it in the repository's own code, specs and docs, ending in an idea file under ideas/ every time. Use for /kyspec-brainstorm, "let's think about X", "brainstorm X", or to continue an idea file. Accepts an idea file, --issue N, or a topic.
+description: Think an idea through with a partner who challenges it and grounds it in the repository's own code, specs and docs, ending in an idea file under ideas/ every time. Use for /kyspec-brainstorm, "let's think about X", "brainstorm X", or to continue an idea file. Accepts an idea file, --issue N, or a topic. Under ff (fast forward, method "The chain"), writes the idea and goes straight on to plan.
 ---
 
 # /kyspec-brainstorm
@@ -65,4 +65,6 @@ the topic implies; ask once only when two are plausible.
 ## End
 
 State the path and the status, and name the next step: `/kyspec-plan <name>` for an explored
-idea the user wants built; nothing for a seed still growing, or a parked or rejected idea.
+idea the user wants built; nothing for a seed still growing, or a parked or rejected idea. Under fast forward (method "The
+chain"), step 6 shows the file without asking, and the thread goes straight on to
+`/kyspec-plan <name>`.

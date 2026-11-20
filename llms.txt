@@ -22,6 +22,8 @@ Two files and six skills, four lines, run from the repository root:
    each keeping its SKILL.md: .claude/skills/ for Claude Code,
    .agents/skills/ for Codex; another host uses its own skill location.
    skills/kyspec-waiting goes with them: it reports what waits on a person.
+   Saying `ff` (fast forward) at any step runs the rest of the chain
+   without pausing (METHOD.md "The chain").
    A repository arriving from OpenSpec (it has an openspec/ directory) also
    takes skills/kyspec-migrate, for one run.
 3. check-layout.mjs is the layout gate (dependency-free Node.js). Run
